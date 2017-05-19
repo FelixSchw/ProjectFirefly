@@ -53,12 +53,14 @@ del trainingData['Filter_Ventilator_Strom_A']
 ###Dies funktioniert wenn Datum nicht als Index sondern als Spalte gespeichert ist###
 ###Zusammenfügen von den Abschnitten funktioniert noch nicht###
 
-# trainingDataAlloc = trainingData[0:0]
+trainingDataAlloc = trainingData[0:0]
+trainingData['Bin'] = 0
+i=0
 for i in range(0, len(trainingDataTargets)):
     startTime = trainingDataTargets['Time'].iloc[i] - pd.Timedelta(minutes=120)
     endTime = trainingDataTargets['Time'].iloc[i]
     trainingDataBuffer = trainingData.loc[(trainingData.Time >= startTime) & (trainingData.Time <= endTime), :]
-    trainingDataBuffer = trainingDataBuffer.unstack()
+    #trainingDataBuffer = trainingDataBuffer.unstack()
     #trainingDataAlloc = pd.concat(trainingDataAlloc, trainingDataBuffer)
 
 
@@ -79,3 +81,14 @@ for i in range(0, len(trainingDataTargets)):
 #     endTime = str(trainingDataTargets.index.get_values()[i])[11:19]
 #     trainingDataBuffer = trainingData[startDate:endDate].between_time(start_time=startTime, end_time=endTime)
 #     trainingDataBuffer = trainingDataBuffer.unstack()
+
+
+# ###Versucht anhand Iteration einen neuen Dataframe zu erstellen###
+# trainingDataAlloc = trainingData[0:0]
+# for i in range(0, len(trainingDataTargets)):
+#     for j in range(0, len(trainingData)):
+#         for k in range(0,120):
+#             startTime = trainingDataTargets['Time'].iloc[i] - pd.Timedelta(minutes=120)
+#             endTime = trainingDataTargets['Time'].iloc[i]
+#             trainingDataBuffer = trainingData.loc[(trainingData.Time >= startTime) & (trainingData.Time <= endTime), :]
+#             trainingDataAlloc = pd.concat(trainingDataAlloc, trainingDataBuffer.iloc[k,j])
