@@ -20,7 +20,7 @@ cwd = os.getcwd()
 
 #read the csv files and parse dates
 dateparse = lambda x: pd.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
-trainingData = pd.read_csv('Predictors_1.csv', parse_dates=['Time'], date_parser=dateparse)
+trainingData = pd.read_csv('Predictors_1_mit_Testdaten.csv', parse_dates=['Time'], date_parser=dateparse)
 trainingData = trainingData.set_index('Time')
 
 trainingDataTargets = pd.read_csv('Targets_1.csv', parse_dates=['Time'], date_parser=dateparse)
@@ -48,3 +48,22 @@ del trainingData['Muehle_K1_Fuellstand_%']
 del trainingData['Muehle_K2_Fuellstand_%']
 del trainingData['Muehle_nach_Druck_mbar']
 del trainingData['Filter_Ventilator_Strom_A']
+
+startDate = str(trainingDataTargets.index.get_values()[0])[:10]
+endDate = str(trainingDataTargets.index.get_values()[0])[:10]
+startTime = str(trainingDataTargets.index.get_values()[i] - pd.Timedelta(minutes=120))[11:19]
+endTime = str(trainingDataTargets.index.get_values()[0])[11:19]
+trainingDataBuffer = trainingData[startDate:endDate].between_time(start_time= startTime, end_time = endTime)
+
+for i in range(0, len(trainingDataTargets)):
+    startDate = str(trainingDataTargets.index.get_values()[i])[:10]
+    endDate = str(trainingDataTargets.index.get_values()[i])[:10]
+    startTime = str(trainingDataTargets.index.get_values()[i] - pd.Timedelta(minutes=120))[11:19]
+    endTime = str(trainingDataTargets.index.get_values()[i])[11:19]
+    trainingDataBuffer = trainingData[startDate:endDate].between_time(start_time=startTime, end_time=endTime)
+    trainingDataBuffer = trainingDataBuffer.unstack()
+
+# for i in range(0, len(trainingDataTargets)):
+#     for j in range(0, len(trainingData.columns)):
+#         #for k in range (0,120):
+#             trainingDataAllocated = pd.concat(trainingData.iloc[1,j])
