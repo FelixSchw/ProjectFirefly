@@ -67,16 +67,7 @@ for i in range(0, len(trainingDataTargets)):
     startTime = trainingDataTargets.index[i] - pd.Timedelta(minutes=120)
     endTime = trainingDataTargets.index[i]
     trainingDataBuffer = trainingData.loc[(trainingData.index >= startTime) & (trainingData.index <= endTime), :]
-
-
-
-
-# ###Versucht anhand Iteration einen neuen Dataframe zu erstellen###
-# trainingDataAlloc = trainingData[0:0]
-# for i in range(0, len(trainingDataTargets)):
-#     for j in range(0, len(trainingData)):
-#         for k in range(0,120):
-#             startTime = trainingDataTargets['Time'].iloc[i] - pd.Timedelta(minutes=120)
-#             endTime = trainingDataTargets['Time'].iloc[i]
-#             trainingDataBuffer = trainingData.loc[(trainingData.Time >= startTime) & (trainingData.Time <= endTime), :]
-#             trainingDataAlloc = pd.concat(trainingDataAlloc, trainingDataBuffer.iloc[k,j])
+    for j in range(0, len(trainingData)):
+        for k in range(0,115):
+            #Einfügen in Zeile i und Spalte j (mit Unterspalte k)
+            TrainingDataAlloc.ix[i, trainingData.columns[j]][k] = trainingDataBuffer.iloc[k,j]
