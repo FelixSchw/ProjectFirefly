@@ -56,18 +56,15 @@ ArrayAttributes = list(trainingData)
 Array2Hours = [i for i in range(0,120)]
 ArrayAmountOfTargets = [i for i in range(0,len(trainingDataTargets))]
 ownIndex = pd.MultiIndex.from_product([ArrayAttributes, Array2Hours], names=['Attribute', '120Werte'])
-TrainingDataAlloc = pd.DataFrame(np.random.randn(3, 840), index=ArrayAmountOfTargets, columns=ownIndex)
+TrainingDataAlloc = pd.DataFrame("NaN", index=ArrayAmountOfTargets, columns=ownIndex)
 
 
-###Trennt die Eingangsdaten dem Target-Wert entsprechend in 2 Stunden Abschnitte auf###
-###Dies funktioniert wenn Datum  als Index gespeichert ist###
-###Einfügen der Daten in oben generierten Dataframe TrainingDataAlloc muss noch erfolgen###
-
+###Zuordnen der 120 Predikoren zu dem jeweiligen Target
 for i in range(0, len(trainingDataTargets)):
     startTime = trainingDataTargets.index[i] - pd.Timedelta(minutes=120)
     endTime = trainingDataTargets.index[i]
     trainingDataBuffer = trainingData.loc[(trainingData.index >= startTime) & (trainingData.index <= endTime), :]
-    for j in range(0, len(trainingData)):
-        for k in range(0,115):
+    for j in range(0, len(trainingData.columns)):
+        for k in range(0,120):
             #Einfügen in Zeile i und Spalte j (mit Unterspalte k)
-            TrainingDataAlloc.ix[i, trainingData.columns[j]][k] = trainingDataBuffer.iloc[k,j]
+            TrainingDataAlloc.ix[i, (trainingData.columns[j],k)] = trainingDataBuffer.iloc[k,j]
