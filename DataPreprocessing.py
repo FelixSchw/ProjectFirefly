@@ -5,6 +5,7 @@
 
 import pandas as pd
 import numpy as np
+import array
 import os
 from scipy.stats import skew
 
@@ -50,21 +51,24 @@ del trainingData['Muehle_nach_Druck_mbar']
 del trainingData['Filter_Ventilator_Strom_A']
 
 
+###Multiindex-Dataframe der mit den Werten der Input-Parameter befüllt werden kann###
+ArrayAttributes = list(trainingData)
+Array2Hours = [i for i in range(0,120)]
+ArrayAmountOfTargets = [i for i in range(0,len(trainingDataTargets))]
+ownIndex = pd.MultiIndex.from_product([ArrayAttributes, Array2Hours], names=['Attribute', '120Werte'])
+TrainingDataAlloc = pd.DataFrame(np.random.randn(3, 840), index=ArrayAmountOfTargets, columns=ownIndex)
+
+
 ###Trennt die Eingangsdaten dem Target-Wert entsprechend in 2 Stunden Abschnitte auf###
 ###Dies funktioniert wenn Datum  als Index gespeichert ist###
-###Zusammenfügen von den Abschnitten funktioniert noch nicht###
+###Einfügen der Daten in oben generierten Dataframe TrainingDataAlloc muss noch erfolgen###
 
-trainingData['Bin'] = "NaN"
-i = 0
 for i in range(0, len(trainingDataTargets)):
     startTime = trainingDataTargets.index[i] - pd.Timedelta(minutes=120)
     endTime = trainingDataTargets.index[i]
     trainingDataBuffer = trainingData.loc[(trainingData.index >= startTime) & (trainingData.index <= endTime), :]
-    i =i+1
-    for k in range (0,120):
-        trainingDataBuffer.ix[k, ['Bin']] = i
 
-    # trainingDataBuffer = trainingDataBuffer.unstack()
+
 
 
 # ###Versucht anhand Iteration einen neuen Dataframe zu erstellen###
