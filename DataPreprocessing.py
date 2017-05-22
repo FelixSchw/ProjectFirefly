@@ -13,8 +13,8 @@ from scipy.stats import skew
 
 ###Change working directory###
 f = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze\\12-05-2017\\Fertige_Sets"
-l = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze/12-05-201/Fertige_Sets//"
-os.chdir(f)
+l = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze/12-05-2017/Fertige_Sets"
+os.chdir(l)
 
 ###check if change of working directory worked###
 cwd = os.getcwd()
@@ -73,6 +73,7 @@ ownIndex = pd.MultiIndex.from_product([ArrayAttributes, Array2Hours], names=['At
 TrainingDataAlloc = pd.DataFrame("NaN", index=ArrayAmountOfTargets, columns=ownIndex)
 
 
+
 ###Zuordnen der 120 Predikoren zu dem jeweiligen Target
 for i in range(0, len(trainingDataTargets)):
     startTime = trainingDataTargets.index[i] - pd.Timedelta(minutes=120)
@@ -84,3 +85,5 @@ for i in range(0, len(trainingDataTargets)):
             for k in range(0,120):
                 #Einfügen in Zeile i und Spalte j (mit Unterspalte k)
                 TrainingDataAlloc.ix[i, (trainingData.columns[j],k)] = trainingDataBuffer.iloc[k,j]
+
+print(TrainingDataAlloc)
