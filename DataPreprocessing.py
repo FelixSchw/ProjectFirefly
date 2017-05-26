@@ -13,20 +13,19 @@ from scipy.stats import skew
 
 ###Change working directory###
 f = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze\\19-05-2017"
-l = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze/12-05-2017/Fertige_Sets"
-ls = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze/19-05-2017"
+l = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze/19-05-2017"
 
-os.chdir(f)
+os.chdir(l)
 
 ###check if change of working directory worked###
 cwd = os.getcwd()
 
 #read the csv files and parse dates
 dateparse = lambda x: pd.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
-trainingData = pd.read_csv('Predictors_1.csv', parse_dates=['Time'], date_parser=dateparse)
+trainingData = pd.read_csv('Predictors_2.txt', parse_dates=['Time'], date_parser=dateparse)
 trainingData = trainingData.set_index('Time')
 
-trainingDataTargets = pd.read_csv('Targets_1.csv', parse_dates=['Time'], date_parser=dateparse)
+trainingDataTargets = pd.read_csv('Targets_2.csv', parse_dates=['Time'], date_parser=dateparse)
 trainingDataTargets = trainingDataTargets.set_index('Time')
 
 # ###Data Exploration###
@@ -44,8 +43,8 @@ del trainingData['Frischgut_Klinker_t/h']
 del trainingData['Frischgut_Gips_t/h']
 del trainingData['Frischgut_Huettensand_t/h']
 del trainingData['Frischgut_Anhydrit_t/h']
-del trainingData['Frischgut_Mahlhilfe 1_l/h']
-del trainingData['Frischgut_Mahlhilfe 2_l/h']
+del trainingData['Frischgut_Mahlhilfe_1_l/h']
+del trainingData['Frischgut_Mahlhilfe_2_l/h']
 del trainingData['Becherwerk_Strom_A']
 del trainingData['Muehle_K1_Fuellstand_%']
 del trainingData['Muehle_K2_Fuellstand_%']
@@ -69,7 +68,7 @@ def is_outlier(points, thresh = 3.5):
 
 ###Multiindex-Dataframes die mit den Werten der Input-Parameter befüllt werden können###
 ArrayAttributes = list(trainingData)
-ArrayAttributesDelay = [20,20,3,0,0,2,0]
+ArrayAttributesDelay = [20,20,20,3,0,0,0,0,2]
 Array2Hours = [i for i in range(0,120)]
 ArrayAmountOfTargets = [i for i in range(0,len(trainingDataTargets))]
 ownIndex = pd.MultiIndex.from_product([ArrayAttributes, Array2Hours], names=['Attribute', '120Werte'])
@@ -77,7 +76,8 @@ TrainingDataAlloc = pd.DataFrame("NaN", index=ArrayAmountOfTargets, columns=ownI
 TrainingDataAllocSmall = pd.DataFrame("NaN", index=ArrayAmountOfTargets, columns=ArrayAttributes)
 
 
-###Zuordnen der 120 Predikoren zu dem jeweiligen Target
+
+###Zuordnen der 120 Predikoren zu TrainingDataAlloc
 for i in range(0, len(trainingDataTargets)):
 #    if (trainingDataTargets.loc[(trainingDataTargets.index[5]),"Feinheit"] > 0):
         startTime = trainingDataTargets.index[i] - pd.Timedelta(minutes=120)
@@ -90,7 +90,10 @@ for i in range(0, len(trainingDataTargets)):
                     #Einfügen in Zeile i und Spalte j (mit Unterspalte k)
                     TrainingDataAlloc.ix[i, (trainingData.columns[j],k)] = trainingDataBuffer.iloc[k,j]
 
-###Zuordnen 1 Prediktor jedes Attributs zu dem jeweiligen Target
+
+###Zuordnen 1 Prediktor jedes Attributs zu TrainingDataAllocSmall
 for i in range(0, len(trainingDataTargets)):
     for j in range(0, len(trainingData.columns)):
         TrainingDataAllocSmall.loc[i,ArrayAttributes[j]] = TrainingDataAlloc.ix[i, (ArrayAttributes[j],119-ArrayAttributesDelay[j])]
+
+print(TrainingDataAllocSmall)
