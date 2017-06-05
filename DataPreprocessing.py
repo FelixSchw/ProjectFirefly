@@ -109,21 +109,21 @@ dataForRegression = pd.concat([TrainingDataAllocSmall, trainingDataTargets], axi
 #Löschen der Spalten mit Null-Werten
 dataForRegression = dataForRegression.dropna()
 
-#Defition einer Error-Funktion
+#Defition einer Error-Funktion (RMSE)
 def errorFunction(y,y_pred):
-    accuracy = r2_score(y, y_pred)
+    accuracy = math.sqrt(mean_squared_error(y, y_pred))
     return accuracy
 
-#Aufteilen von  trainingData in Subsets von Trainings- und "Test"-Trainingsdaten mit Parametern seed & test_size
+#Aufteilen von trainingData in Subsets von Trainings- und "Test"-Trainingsdaten mit Parametern seed & test_size
 seed = 1
-test_size = 0.25
+test_size = 0.3
 X_train, X_test, y_train, y_test = cross_validation.train_test_split(dataForRegression.ix[:,:len(trainingData.columns)], dataForRegression.ix[:,'Feinheit':], test_size=test_size, random_state=seed)
 
 #Defintion verschiedener Modelle
 linReg = linear_model.LinearRegression(n_jobs=-1)
-ridge = linear_model.Ridge(alpha=1)
-lasso = linear_model.Lasso(alpha=0.005)
-svr_rbf = SVR(kernel='rbf', C=100000, gamma=1e-7)
+ridge = linear_model.Ridge(alpha=1000)
+lasso = linear_model.Lasso(alpha=1000)
+svr_rbf = SVR(kernel='rbf', C=100000, gamma=1e-8)
 svr_lin = SVR(kernel='linear', C=0.0001)
 svr_poly = SVR(kernel='poly', C=100000, degree=5, epsilon=1)
 
@@ -141,21 +141,43 @@ prediction_clf1_solution = pd.concat([X_test, prediction_clf1, y_test], axis=1, 
 print("Prediction using (clf1): ")
 print(prediction_clf1_solution)
 
-# ###Berechnung des Prediktion-Errors
-# error_clf1 = clf1.score(X_test, y_test)
-# print("R^2 of chosen regression (clf1): ", error_clf1)
-# errorFunction_clf1 = errorFunction(prediction_clf1, y_test)
-# print("Error-Function of chosen regression (clf1): ", errorFunction_clf1)
+###Berechnung des Prediktion-Errors
+error_clf1 = clf1.score(X_train, y_train)
+print("R^2 of chosen regression (clf1) on training data: ", error_clf1)
+errorFunction_clf1 = errorFunction(prediction_clf1, y_test)
+print("Error-Function of chosen regression (clf1) on test data: ", errorFunction_clf1)
 
-# #Initialisierung der Error-Funktion
-# scorer = make_scorer(score_func=errorFunction, greater_is_better=True)
-#
-# #Cross Validation von Ridge Parameters
-# if clf1._get_param_names() == linear_model.Ridge()._get_param_names():
-#     alphas = np.array([1e-15, 1e-10, 1e-5, 0.001, 0.1, 1, 100, 1000, 10000])
-#     alphas_grid = dict(alpha=alphas)
-#     clf_ridge = linear_model.Ridge()
-#     grid = GridSearchCV(estimator=clf_ridge, param_grid=alphas_grid, cv=2, scoring=scorer)
-#     grid.fit(TrainingDataAllocSmall, trainingDataTargets)
-#     print("\nRSME k-folded (k=10) Ridge-Regressions with different alpha:")
-#     print(*grid.grid_scores_, sep="\n")
+#Initialisierung der Error-Funktion
+scorer = make_scorer(score_func=errorFunction, greater_is_better=True)
+
+#Cross Validation von Ridge Parameters
+if clf1._get_param_names() == linear_model.Ridge()._get_param_names():
+    alphas = np.array([1e-15, 1e-10, 1e-5, 0.001, 0.1, 1, 100, 1000, 10000])
+    alphas_grid = dict(alpha=alphas)
+    clf_ridge = linear_model.Ridge()
+    grid = GridSearchCV(estimator=clf_ridge, param_grid=alphas_grid, cv=2, scoring=scorer)
+    grid.fit(dataForRegression.ix[:,:len(trainingData.columns)], dataForRegression.ix[:,'Feinheit':])
+    print("\nRSME k-folded (k=2) Ridge-Regressions with different alpha:")
+    print(*grid.grid_scores_, sep="\n")
+
+#cross validation of Lasso parameters
+if clf1._get_param_names() == linear_model.Lasso()._get_param_names():
+   alphas = np.array([1e-20, 1e-15, 1e-09, 0.05, 1000, 10000, 100000, 1000000, 10000000])
+   alphas_grid = dict(alpha=alphas)
+   clf_lasso = linear_model.Lasso()
+   grid = GridSearchCV(estimator=clf_lasso, param_grid=alphas_grid, cv=10, scoring=scorer)
+   grid.fit(dataForRegression.ix[:,:len(trainingData.columns)], dataForRegression.ix[:,'Feinheit':])
+   print("\nRSME k-folded (k=10) Lasso-Regressions with different alpha:")
+   print(*grid.grid_scores_, sep="\n")
+
+#cross validation of SVR parameters
+if clf1._get_param_names() == SVR()._get_param_names():
+   Cs = np.array([100000])
+   Epsilons = np.array([0.001, 0.01, 0.1, 1])
+   Gammas = np.array([1e-8, 1e-7, 1e-6])
+   Param_grid = dict(C=Cs, gamma=Gammas, epsilon=Epsilons)
+   clf_svr = SVR(kernel='rbf')
+   grid = GridSearchCV(estimator=clf_svr, param_grid=Param_grid, cv=3, scoring=scorer)
+   grid.fit(dataForRegression.ix[:,:len(trainingData.columns)], dataForRegression.ix[:,'Feinheit':])
+   print("\nRSME k-folded (k=5) SVR-Regressions with different alpha:")
+   print(*grid.grid_scores_, sep="\n")
