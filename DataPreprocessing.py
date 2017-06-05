@@ -11,7 +11,7 @@ from scipy.stats import skew
 from sklearn import cross_validation, linear_model
 from sklearn.svm import SVR
 from sklearn.grid_search import GridSearchCV
-from sklearn.metrics import make_scorer, r2_score, mean_squared_error
+from sklearn.metrics import make_scorer, mean_squared_error
 import math
 from sklearn import preprocessing
 
