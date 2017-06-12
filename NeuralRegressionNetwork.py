@@ -5,22 +5,25 @@
 
 import pandas as pd
 import numpy as np
+import math
 import array
 import os
-from scipy.stats import skew
-from sklearn import cross_validation, linear_model
-from sklearn.svm import SVR
-from sklearn.grid_search import GridSearchCV
+#from scipy.stats import skew
+from sklearn import cross_validation
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
+#from sklearn.pipeline import Pipeline
 from sklearn.metrics import make_scorer, mean_squared_error
-import math
 from sklearn import preprocessing
-from tsfresh import extract_features, select_features
-from tsfresh.utilities.dataframe_functions import impute
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.wrappers.scikit_learn import KerasRegressor
+
 
 ###Only apply if default directories are not working###
 
 ###Change working directory###
-f = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze"
+f = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze\\26-05-2017"
 l = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze"
 
 os.chdir(l)
@@ -49,6 +52,12 @@ trainingDataTargets = trainingDataTargets.set_index('Time')
 # print('--------------Pearson Corr----------------')
 # print(trainingData.corr(method='pearson'))
 
+# Folgende Parameter inkludieren
+#    - Muehle_nach_Temp._C mit lag=62min
+#    - Griesse_t/h mit lag=10min
+#    - Gesamtaufgabe_t/h mit lag=22min
+#    - Frischgut_Summe_t/h mit lag=25min
+
 ###Drop irrelevant values###
 del trainingData['Frischgut_Klinker_t/h']
 del trainingData['Frischgut_Gips_t/h']
@@ -56,7 +65,7 @@ del trainingData['Frischgut_Huettensand_t/h']
 del trainingData['Frischgut_Anhydrit_t/h']
 del trainingData['Frischgut_Mahlhilfe_1_l/h']
 del trainingData['Frischgut_Mahlhilfe_2_l/h']
-del trainingData['Becherwerk_Strom_A']
+del trainingData['Muehle_Strom_A']
 del trainingData['Muehle_K1_Fuellstand_%']
 del trainingData['Muehle_K2_Fuellstand_%']
 del trainingData['Muehle_nach_Druck_mbar']
@@ -87,7 +96,7 @@ def is_outlier(points, thresh = 3.5):
 
 ###Multiindex-Dataframes die mit den Werten der Input-Parameter befüllt werden können###
 ArrayAttributes = list(trainingData)
-ArrayAttributesDelay = [20,20,20,3,0,0,0,0,2]
+ArrayAttributesDelay = [25,10,22,3,0,0,0,0,62]
 Array2Hours = [i for i in range(0,120)]
 ArrayAmountOfTargets = [i for i in range(0,len(trainingDataTargets))]
 ownIndex = pd.MultiIndex.from_product([ArrayAttributes, Array2Hours], names=['Attribute', '120Werte'])
@@ -123,80 +132,45 @@ dataForRegression = pd.concat([TrainingDataAllocSmall, trainingDataTargets], axi
 #Löschen der Spalten mit Null-Werten
 dataForRegression = dataForRegression.dropna()
 
-#Aufteilen in Predictors und Targets
-dataForRegression_X = dataForRegression.ix[:,:len(trainingData.columns)]
-dataForRegression_y = dataForRegression.ix[:,'Feinheit':]
+#Konvertieren in float64 dtype
+for j in range(0, len(trainingData.columns)):
+    dataForRegression.ix[:, trainingData.columns[j]] = pd.to_numeric(dataForRegression[trainingData.columns[j]])
+
+#Vorgehen Tutorial
+# load dataset
+#dataframe = pd.read_csv("/Users/leopoldspenner/Documents/python/housing.csv", delim_whitespace=True, header=None)
+#datasett = dataframe.values
+# split into input (X) and output (Y) variables
+#XX = datasett[:,0:13]
+#YY = datasett[:,13]
 
 #Standardisieren der Trainingsdaten
-dataForRegression_X = pd.DataFrame(preprocessing.scale(dataForRegression_X))
-dataForRegression_X = dataForRegression_X.set_index(dataForRegression.ix[:,:len(trainingData.columns)].index)
+#dataForRegression_X = pd.DataFrame(preprocessing.scale(dataForRegression_X))
+#dataForRegression_X = dataForRegression_X.set_index(dataForRegression.ix[:,:len(trainingData.columns)].index)
 
-#Aufteilen von trainingData in Subsets von Trainings- und "Test"-Trainingsdaten mit Parametern seed & test_size
-seed = 1
-test_size = 0.3
-X_train, X_test, y_train, y_test = cross_validation.train_test_split(dataForRegression_X, dataForRegression_y, test_size=test_size, random_state=seed)
 
-#Defintion verschiedener Modelle
-linReg = linear_model.LinearRegression(n_jobs=-1)
-ridge = linear_model.Ridge(alpha=10)
-lasso = linear_model.Lasso(alpha=0.05)
-svr_rbf = SVR(kernel='rbf', C=100, epsilon=0.001, gamma=1e-7)
-svr_lin = SVR(kernel='linear', C=0.0001)
-svr_poly = SVR(kernel='poly', C=100000, degree=5, epsilon=1)
+dataset = dataForRegression.values
+X = dataset[:,0:9]
+Y = dataset[:,9]
 
-#Auswahl des Modells
-clf1 = lasso
+# define base model
+def baseline_model():
+    # create model
+    model = Sequential()
+    model.add(Dense(9, input_dim=9, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(1, kernel_initializer='normal'))
+    # Compile model
+    model.compile(loss='mean_squared_error', optimizer='adam')
+    return model
 
-#training of classifier
-clf1.fit(X_train, y_train)
 
-#Prediction des Subsets von "Test"-Trainingsdaten mit clf1
-prediction_clf1 = pd.DataFrame(clf1.predict(X_test))
-prediction_clf1 = prediction_clf1.set_index(X_test.index)
-prediction_clf1.columns = ['Predictions']
-prediction_clf1_solution = pd.concat([X_test, prediction_clf1, y_test], axis=1, join_axes=[X_test.index])
-print("Prediction using (clf1): ")
-print(prediction_clf1_solution)
+# fix random seed for reproducibility
+seed = 7
+np.random.seed(seed)
 
-###Berechnung des Prediktion-Errors
-error_clf1 = clf1.score(X_train, y_train)
-print("R^2 of chosen regression (clf1) on training data: ", error_clf1)
-errorFunction_clf1 = errorFunction(prediction_clf1, y_test)
-print("Error-Function of chosen regression (clf1) on test data: ", errorFunction_clf1)
-errorUsingMedian = errorFunction([np.mean(y_test) for i in range(0,len(y_test))], y_test)
-print("Error-Function of always predicting mean: ", errorUsingMedian)
+# evaluate model with standardized dataset
+estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=100, batch_size=5, verbose=0)
 
-#Initialisierung der Error-Funktion
-scorer = make_scorer(score_func=errorFunction, greater_is_better=True)
-
-#Cross Validation von Ridge Parameters
-if clf1._get_param_names() == linear_model.Ridge()._get_param_names():
-    alphas = np.array([1e-5, 0.001, 0.1, 1, 10, 50, 100, 1000, 10000])
-    alphas_grid = dict(alpha=alphas)
-    clf_ridge = linear_model.Ridge()
-    grid = GridSearchCV(estimator=clf_ridge, param_grid=alphas_grid, cv=5, scoring=scorer)
-    grid.fit(dataForRegression_X, dataForRegression_y)
-    print("\nRSME k-folded (k=5) Ridge-Regressions with different alpha:")
-    print(*grid.grid_scores_, sep="\n")
-
-#cross validation of Lasso parameters
-if clf1._get_param_names() == linear_model.Lasso()._get_param_names():
-   alphas = np.array([1e-20, 1e-15, 1e-09, 0.05, 1000, 10000, 100000, 1000000, 10000000])
-   alphas_grid = dict(alpha=alphas)
-   clf_lasso = linear_model.Lasso(tol=10)
-   grid = GridSearchCV(estimator=clf_lasso, param_grid=alphas_grid, cv=5, scoring=scorer)
-   grid.fit(dataForRegression_X, dataForRegression_y)
-   print("\nRSME k-folded (k=5) Lasso-Regressions with different alpha:")
-   print(*grid.grid_scores_, sep="\n")
-
-#cross validation of SVR parameters
-if clf1._get_param_names() == SVR()._get_param_names():
-   Cs = np.array([0.1, 1, 10, 100])
-   Epsilons = np.array([0.001, 0.01, 0.1, 1, 10])
-   Gammas = np.array([1e-8, 1e-7, 1e-6])
-   Param_grid = dict(C=Cs, gamma=Gammas, epsilon=Epsilons)
-   clf_svr = SVR(kernel='rbf')
-   grid = GridSearchCV(estimator=clf_svr, param_grid=Param_grid, cv=5, scoring=scorer)
-   grid.fit(dataForRegression_X, np.ravel(dataForRegression_y))
-   print("\nRSME k-folded (k=5) SVR-Regressions with different alpha:")
-   print(*grid.grid_scores_, sep="\n")
+kfold = KFold(n_splits=10, random_state=seed)
+results = cross_val_score(estimator,X ,Y , cv=kfold)
+print("Results: %.2f (%.2f) MSE" % (results.mean(), results.std()))
