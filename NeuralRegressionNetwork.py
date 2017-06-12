@@ -191,7 +191,7 @@ print("Standardized: %.2f (%.2f) MSE" % (resultsS.mean(), results.std()))
 def larger_model():
     # create model
     model = Sequential()
-    model.add(Dense(13, input_dim=13, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(9, input_dim=9, kernel_initializer='normal', activation='relu'))
     model.add(Dense(6, kernel_initializer='normal', activation='relu'))
     model.add(Dense(1, kernel_initializer='normal'))
     # Compile model
@@ -211,7 +211,7 @@ print("Larger: %.2f (%.2f) MSE" % (results.mean(), results.std()))
 def wider_model():
     # create model
     model = Sequential()
-    model.add(Dense(20, input_dim=13, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(20, input_dim=9, kernel_initializer='normal', activation='relu'))
     model.add(Dense(1, kernel_initializer='normal'))
     # Compile model
     model.compile(loss='mean_squared_error', optimizer='adam')
