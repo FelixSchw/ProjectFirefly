@@ -12,7 +12,7 @@ import os
 from sklearn import cross_validation
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
-#from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline
 from sklearn.metrics import make_scorer, mean_squared_error
 from sklearn import preprocessing
 from keras.models import Sequential
@@ -23,6 +23,8 @@ from keras.wrappers.scikit_learn import KerasRegressor
 ###Only apply if default directories are not working###
 
 ###Change working directory###
+from sklearn.preprocessing import StandardScaler
+
 f = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze\\26-05-2017"
 l = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze"
 
@@ -153,6 +155,8 @@ dataset = dataForRegression.values
 X = dataset[:,0:9]
 Y = dataset[:,9]
 
+print("Data prep completet. Starting NN training")
+
 # define base model
 def baseline_model():
     # create model
@@ -166,11 +170,19 @@ def baseline_model():
 
 # fix random seed for reproducibility
 seed = 7
-np.random.seed(seed)
 
 # evaluate model with standardized dataset
 estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=100, batch_size=5, verbose=0)
-
 kfold = KFold(n_splits=10, random_state=seed)
 results = cross_val_score(estimator,X ,Y , cv=kfold)
 print("Results: %.2f (%.2f) MSE" % (results.mean(), results.std()))
+
+# evaluate model with standardized dataset
+np.random.seed(seed)
+estimators = []
+estimators.append(('standardize', StandardScaler()))
+estimators.append(('mlp', KerasRegressor(build_fn=baseline_model, epochs=50, batch_size=5, verbose=0)))
+pipeline = Pipeline(estimators)
+kfoldS = KFold(n_splits=10, random_state=seed)
+resultsS = cross_val_score(pipeline, X, Y, cv=kfoldS)
+print("Standardized: %.2f (%.2f) MSE" % (resultsS.mean(), results.std()))
