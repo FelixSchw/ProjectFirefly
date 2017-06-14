@@ -14,8 +14,6 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import make_scorer, mean_squared_error
 import math
 from sklearn import preprocessing
-from tsfresh import extract_features, select_features
-from tsfresh.utilities.dataframe_functions import impute
 
 ###Only apply if default directories are not working###
 
@@ -31,8 +29,6 @@ cwd = os.getcwd()
 #read the csv files and parse dates
 dateparse = lambda x: pd.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
 trainingData = pd.read_csv('Predictors.txt', parse_dates=['Time'], date_parser=dateparse)
-
-#extracted_features = extract_features(trainingData, column_id="", column_sort="Time")
 
 trainingData = trainingData.set_index('Time')
 
