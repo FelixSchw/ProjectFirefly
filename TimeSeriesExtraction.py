@@ -20,20 +20,20 @@ from tsfresh.utilities.dataframe_functions import impute
 ###Only apply if default directories are not working###
 
 ###Change working directory###
-f = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze\\26-05-2017"
-l = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze/26-05-2017"
+f = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze"
+l = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze"
 
-os.chdir(f)
+os.chdir(l)
 
 ###check if change of working directory worked###
 cwd = os.getcwd()
 
 #read the csv files and parse dates
 dateparse = lambda x: pd.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
-trainingData = pd.read_csv('Predictors_3.txt', parse_dates=['Time'], date_parser=dateparse)
+trainingData = pd.read_csv('Predictors.txt', parse_dates=['Time'], date_parser=dateparse)
 trainingData = trainingData.set_index('Time')
 
-trainingDataTargets = pd.read_csv('Targets_3.txt', parse_dates=['Time'], date_parser=dateparse)
+trainingDataTargets = pd.read_csv('Targets.txt', parse_dates=['Time'], date_parser=dateparse)
 trainingDataTargets = trainingDataTargets.set_index('Time')
 
 ###Drop irrelevant values###
