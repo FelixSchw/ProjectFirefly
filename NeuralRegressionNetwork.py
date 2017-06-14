@@ -204,8 +204,8 @@ estimators.append(('standardize', StandardScaler()))
 estimators.append(('mlp', KerasRegressor(build_fn=larger_model, epochs=50, batch_size=5, verbose=0)))
 pipeline = Pipeline(estimators)
 kfold = KFold(n_splits=10, random_state=seed)
-results = cross_val_score(pipeline, X, Y, cv=kfold)
-print("Larger: %.2f (%.2f) MSE" % (results.mean(), results.std()))
+resultsD = cross_val_score(pipeline, X, Y, cv=kfold)
+print("Larger: %.2f (%.2f) MSE" % (resultsD.mean(), results.std()))
 
 # define wider model
 def wider_model():
@@ -223,5 +223,5 @@ estimators.append(('standardize', StandardScaler()))
 estimators.append(('mlp', KerasRegressor(build_fn=wider_model, epochs=100, batch_size=5, verbose=0)))
 pipeline = Pipeline(estimators)
 kfold = KFold(n_splits=10, random_state=seed)
-results = cross_val_score(pipeline, X, Y, cv=kfold)
-print("Wider: %.2f (%.2f) MSE" % (results.mean(), results.std()))
+resultsW = cross_val_score(pipeline, X, Y, cv=kfold)
+print("Wider: %.2f (%.2f) MSE" % (resultsW.mean(), results.std()))
