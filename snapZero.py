@@ -22,11 +22,6 @@ else:
     pathData = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze"
     pathInterface = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Interface"
 
-f = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze"
-fInterface = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Interface"
-l = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze"
-lInterface = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Interface"
-
 ### extract y values
 os.chdir(pathData)
 cwd = os.getcwd()
@@ -35,6 +30,41 @@ trainingDataTargets = pd.read_csv('Targets.txt', parse_dates=['Time'], date_pars
 trainingDataTargets = trainingDataTargets.set_index('Time')
 
 ### extract 'TrainingDataAlloc' from previous module 'Preprocessing'
+os.chdir(pathInterface)
+cwd = os.getcwd()
+trainingDataPredictors = pd.read_csv('TrainingDataAlloc.csv', header=[0, 1], skipinitialspace=True, tupleize_cols=True)
+trainingDataPredictors.columns = pd.MultiIndex.from_tuples(trainingDataPredictors.columns)
+
+### extract list with parameter column names
+testList = [list(x) for x in trainingDataPredictors.columns.levels]
+testList = testList[:-1]
+paramColumns = []
+for i in range(0, len(testList[0])):
+    paramColumns.append(testList[0][i])
+
+### create dataframe for predictor snapshot
+ArrayAmountOfTargets = [i for i in range(0,len(trainingDataTargets))]
+ArrayAttributes = list(paramColumns)
+predictorsSnapshot = pd.DataFrame(index=ArrayAmountOfTargets, columns=ArrayAttributes)
+
+### create snapZero.csv
+###Zuordnen 1 Prediktor jedes Attributs zu TrainingDataAllocSmall
+for i in range(0, len(trainingDataTargets)):
+    for j in range(0, len(trainingDataPredictors.columns.levels)):
+        predictorsSnapshot.loc[i,ArrayAttributes[j]] = trainingDataPredictors.ix[i, (ArrayAttributes[j],119)]
+
+###Zusammenfügen Prediktoren und Target
+predictorsSnapshot = predictorsSnapshot.set_index(trainingDataTargets.index)
+dataForRegression = pd.concat([trainingDataPredictors, trainingDataTargets], axis=1, join_axes=[trainingDataTargets.index])
+
+#Löschen der Spalten mit Null-Werten
+dataForRegression = dataForRegression.dropna()
+
+#Konvertieren in float64 dtype
+for j in range(0, len(trainingDataPredictors.columns.levels)):
+    dataForRegression.ix[:, paramColumns[j]] = pd.to_numeric(dataForRegression[paramColumns[j]])
+
+dataForRegression.to_csv("snapZero.csv")
 
 
 

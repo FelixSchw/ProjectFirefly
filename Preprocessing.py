@@ -22,14 +22,9 @@ else:
     pathData = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze"
     pathInterface = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Interface"
 
-f = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze"
-fInterface = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Interface"
-l = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze"
-lInterface = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Interface"
 
+### change directory ###
 os.chdir(pathData)
-
-###check if change of working directory worked###
 cwd = os.getcwd()
 
 #read the csv files and parse dates
