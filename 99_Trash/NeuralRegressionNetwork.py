@@ -25,10 +25,10 @@ from keras.wrappers.scikit_learn import KerasRegressor
 ###Change working directory###
 from sklearn.preprocessing import StandardScaler
 
-f = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze\\26-05-2017"
+f = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze"
 l = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze"
 
-os.chdir(l)
+os.chdir(f)
 
 ###check if change of working directory worked###
 cwd = os.getcwd()

@@ -13,7 +13,7 @@ import os
 ###Change working directory###
 from sklearn.preprocessing import StandardScaler
 
-felixOrLeo = "l"
+felixOrLeo = "f"
 
 if (felixOrLeo == "f"):
     pathData = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze"
