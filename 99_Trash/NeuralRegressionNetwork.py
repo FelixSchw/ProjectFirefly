@@ -119,7 +119,11 @@ for i in range(0, len(trainingDataTargets)):
                 for j in range(0, len(trainingData.columns)):
                     for k in range(0,120):
                         #Einfügen in Zeile i und Spalte j (mit Unterspalte k)
-                        TrainingDataAlloc.ix[i, (trainingData.columns[j],k)] = trainingDataBuffer.iloc[k,j]
+                        if (trainingDataBuffer.iloc[k, j] > (trainingData.columns[j].median() -  3 * trainingData.columns[j].std()) & trainingDataBuffer.iloc[k, j] < (trainingData.columns[j].median() +  3 * trainingData.columns[j].std())):
+                            TrainingDataAlloc.ix[i, (trainingData.columns[j],k)] = trainingDataBuffer.iloc[k,j]
+                        else:
+                            print("Variable " + trainingData.columns[j] + " mit Median " + str(trainingData.columns[j].median()) + " und Stabw " + str(trainingData.columns[j].std()) + ": Der Wert " + str(trainingDataBuffer.iloc[k, j]) + " fliegt raus!")
+                            TrainingDataAlloc.ix[i, (trainingData.columns[j], k)] = trainingData.columns[j].median()
 
 
 ###Zuordnen 1 Prediktor jedes Attributs zu TrainingDataAllocSmall

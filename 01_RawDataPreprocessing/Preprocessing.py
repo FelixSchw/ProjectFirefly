@@ -69,6 +69,15 @@ del trainingData['Filter_Ventilator_Strom_A']
 del trainingData['Frischgut_Eisensulfat_kg/h']
 del trainingData['Frischgut_Zinnsulfat_kg/h']
 
+### Outlier interval definition
+####### not optimal as this uses median and std from data that also includes production of other mixtures ###########
+lowerBoundary = [len(trainingData.columns)]
+upperBoundary = [len(trainingData.columns)]
+for j in range(0,len(trainingData.columns)):
+    lowerBoundary = trainingData[trainingData.columns[j]].median() - 1.9 * trainingData[trainingData.columns[j]].std()
+    upperBoundary = trainingData[trainingData.columns[j]].median() + 1.5 * trainingData[trainingData.columns[j]].std()
+    print("Variable " + trainingData.columns[j] + " has lower Boundary of " + str(lowerBoundary) + " and upper Boundary of " + str(upperBoundary))
+
 
 #Funktion um Outlier zu erkennen
 def is_outlier(points, thresh = 3.5):
@@ -96,22 +105,30 @@ TrainingDataAllocSmall = pd.DataFrame(index=ArrayAmountOfTargets, columns=ArrayA
 
 ###Zuordnen der 120 Predikoren zu TrainingDataAlloc
 for i in range(0, len(trainingDataTargets)):
-#    if (trainingDataTargets.loc[(trainingDataTargets.index[5]),"Feinheit"] > 0):
-        startTime = trainingDataTargets.index[i] - pd.Timedelta(minutes=120)
-        endTime = trainingDataTargets.index[i]
-        trainingDataBuffer = trainingData.loc[(trainingData.index >= startTime) & (trainingData.index <= endTime), :]
-        # Nur Targets mit 120 Messungen verwenden
-        if (len(trainingDataBuffer)>= 120):
-            # Nur Targets mit Labormesswerten >0 verwenden
-            if (trainingDataTargets.ix[i,0] > 0):
-                for j in range(0, len(trainingData.columns)):
-                    for k in range(0,120):
-                        #Einfügen in Zeile i und Spalte j (mit Unterspalte k)
-                        TrainingDataAlloc.ix[i, (trainingData.columns[j],k)] = trainingDataBuffer.iloc[k,j]
+    if ((i % 5) == 0):
+        print("Progress: " + str((i/len(trainingDataTargets))*100) + " %")
+    startTime = trainingDataTargets.index[i] - pd.Timedelta(minutes=120)
+    endTime = trainingDataTargets.index[i]
+    trainingDataBuffer = trainingData.loc[(trainingData.index >= startTime) & (trainingData.index <= endTime), :]
+    # Nur Targets mit 120 Messungen verwenden
+    if (len(trainingDataBuffer)>= 120):
+        # Nur Targets mit Labormesswerten >0 verwenden
+        if (trainingDataTargets.ix[i,0] > 0):
+            for j in range(0, len(trainingData.columns)):
+                for k in range(0,120):
+                    # Einfügen in Zeile i und Spalte j (mit Unterspalte k)
+                    if (trainingDataBuffer.iloc[k, j] > lowerBoundary) & (trainingDataBuffer.iloc[k, j] < upperBoundary):
+                        TrainingDataAlloc.ix[i, (trainingData.columns[j], k)] = trainingDataBuffer.iloc[k, j]
+                    else:
+                        print("Variable " + trainingData.columns[j] + " mit Median " + str(
+                            trainingData[trainingData.columns[j]].median()) + " und Stabw " + str(
+                            trainingData[trainingData.columns[j]].std()) + ": Der Wert " + str(
+                            trainingDataBuffer.iloc[k, j]) + " fliegt raus!")
+                        TrainingDataAlloc.ix[i, (trainingData.columns[j], k)] = trainingData[trainingData.columns[j]].median()
 
 ###Outlier Detection and Removal
 
 os.chdir(pathInterface)
 cwd = os.getcwd()
 
-TrainingDataAlloc.to_csv("TrainingDataAlloc.csv")
+TrainingDataAlloc.to_csv("PreprocessedPredictors.csv")

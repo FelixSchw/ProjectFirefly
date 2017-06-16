@@ -32,39 +32,35 @@ trainingDataTargets = trainingDataTargets.set_index('Time')
 ### extract 'TrainingDataAlloc' from previous module 'Preprocessing'
 os.chdir(pathInterface)
 cwd = os.getcwd()
-trainingDataPredictors = pd.read_csv('TrainingDataAlloc.csv', header=[0, 1], skipinitialspace=True, tupleize_cols=True)
+trainingDataPredictors = pd.read_csv('PreprocessedPredictors.csv', header=[0, 1], skipinitialspace=True, tupleize_cols=True)
 trainingDataPredictors.columns = pd.MultiIndex.from_tuples(trainingDataPredictors.columns)
+# trainingDataPredictors.set_index('Attribute')
 
 ### extract list with parameter column names
-testList = [list(x) for x in trainingDataPredictors.columns.levels]
-testList = testList[:-1]
-paramColumns = []
-for i in range(0, len(testList[0])):
-    paramColumns.append(testList[0][i])
+paramColumns = [list(x) for x in trainingDataPredictors.columns.levels]
+paramColumns = paramColumns[0][1:-1]
 
 ### create dataframe for predictor snapshot
 ArrayAmountOfTargets = [i for i in range(0,len(trainingDataTargets))]
 ArrayAttributes = list(paramColumns)
 predictorsSnapshot = pd.DataFrame(index=ArrayAmountOfTargets, columns=ArrayAttributes)
 
-### create snapZero.csv
+### create snapLag.csv
+ArrayAttributesDelay = [25,10,22,3,0,0,0,62]
 ###Zuordnen 1 Prediktor jedes Attributs zu TrainingDataAllocSmall
 for i in range(0, len(trainingDataTargets)):
-    for j in range(0, len(trainingDataPredictors.columns.levels)):
-        predictorsSnapshot.loc[i,ArrayAttributes[j]] = trainingDataPredictors.ix[i, (ArrayAttributes[j],119)]
+    for j in range(0, len(ArrayAttributes)):
+        predictorsSnapshot.loc[i,ArrayAttributes[j]] = trainingDataPredictors.ix[i, ArrayAttributes[j]][ArrayAttributesDelay[j]]
 
 ###Zusammenfügen Prediktoren und Target
 predictorsSnapshot = predictorsSnapshot.set_index(trainingDataTargets.index)
-dataForRegression = pd.concat([trainingDataPredictors, trainingDataTargets], axis=1, join_axes=[trainingDataTargets.index])
+dataForRegression = pd.concat([predictorsSnapshot, trainingDataTargets], axis=1, join_axes=[trainingDataTargets.index])
 
 #Löschen der Spalten mit Null-Werten
 dataForRegression = dataForRegression.dropna()
 
 #Konvertieren in float64 dtype
-for j in range(0, len(trainingDataPredictors.columns.levels)):
+for j in range(0, len(ArrayAttributes)):
     dataForRegression.ix[:, paramColumns[j]] = pd.to_numeric(dataForRegression[paramColumns[j]])
 
-dataForRegression.to_csv("snapZero.csv")
-
-
-
+dataForRegression.to_csv("SnapLag.csv")
