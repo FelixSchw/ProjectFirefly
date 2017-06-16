@@ -36,7 +36,7 @@ dateparse = lambda x: pd.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
 ## train the models for all files generated in 02_TrainingSetGeneration
 filenames = []
 filenames.append("SnapZero.csv")
-filenames.append("SnapLag.csv")
+#filenames.append("SnapLag.csv")
 #filenames.append("TimeSeriesCharac.csv")
 #filenames.append("ARMAX.csv")
 

@@ -71,11 +71,13 @@ del trainingData['Frischgut_Zinnsulfat_kg/h']
 
 ### Outlier interval definition
 ####### not optimal as this uses median and std from data that also includes production of other mixtures ###########
-lowerBoundary = [len(trainingData.columns)]
-upperBoundary = [len(trainingData.columns)]
+OneEntryArray = [i for i in range(0,1)]
+lowerBoundary = pd.DataFrame(index=OneEntryArray, columns=trainingData.columns)
+upperBoundary = pd.DataFrame(index=OneEntryArray, columns=trainingData.columns)
+
 for j in range(0,len(trainingData.columns)):
-    lowerBoundary = trainingData[trainingData.columns[j]].median() - 1.9 * trainingData[trainingData.columns[j]].std()
-    upperBoundary = trainingData[trainingData.columns[j]].median() + 1.5 * trainingData[trainingData.columns[j]].std()
+    lowerBoundary[trainingData.columns[j]] = trainingData[trainingData.columns[j]].median() - 1.9 * trainingData[trainingData.columns[j]].std()
+    upperBoundary[trainingData.columns[j]] = trainingData[trainingData.columns[j]].median() + 1.5 * trainingData[trainingData.columns[j]].std()
     print("Variable " + trainingData.columns[j] + " has lower Boundary of " + str(lowerBoundary) + " and upper Boundary of " + str(upperBoundary))
 
 
@@ -102,6 +104,7 @@ ownIndex = pd.MultiIndex.from_product([ArrayAttributes, Array2Hours], names=['At
 TrainingDataAlloc = pd.DataFrame(index=ArrayAmountOfTargets, columns=ownIndex)
 TrainingDataAllocSmall = pd.DataFrame(index=ArrayAmountOfTargets, columns=ArrayAttributes)
 
+changesCounter = 0
 
 ###Zuordnen der 120 Predikoren zu TrainingDataAlloc
 for i in range(0, len(trainingDataTargets)):
@@ -117,16 +120,17 @@ for i in range(0, len(trainingDataTargets)):
             for j in range(0, len(trainingData.columns)):
                 for k in range(0,120):
                     # Einfügen in Zeile i und Spalte j (mit Unterspalte k)
-                    if (trainingDataBuffer.iloc[k, j] > lowerBoundary) & (trainingDataBuffer.iloc[k, j] < upperBoundary):
+                    if ((trainingDataBuffer.iloc[k, j] > lowerBoundary[trainingData.columns[j]][0]) & (trainingDataBuffer.iloc[k, j] < upperBoundary[trainingData.columns[j]][0])):
                         TrainingDataAlloc.ix[i, (trainingData.columns[j], k)] = trainingDataBuffer.iloc[k, j]
                     else:
+                        changesCounter = changesCounter + 1
                         print("Variable " + trainingData.columns[j] + " mit Median " + str(
                             trainingData[trainingData.columns[j]].median()) + " und Stabw " + str(
                             trainingData[trainingData.columns[j]].std()) + ": Der Wert " + str(
-                            trainingDataBuffer.iloc[k, j]) + " fliegt raus!")
+                            trainingDataBuffer.iloc[k, j]) + " wird durch Median ersetzt")
                         TrainingDataAlloc.ix[i, (trainingData.columns[j], k)] = trainingData[trainingData.columns[j]].median()
 
-###Outlier Detection and Removal
+print("In total " + str(changesCounter) + " datapoints were detected as outliers and replaced by median")
 
 os.chdir(pathInterface)
 cwd = os.getcwd()
