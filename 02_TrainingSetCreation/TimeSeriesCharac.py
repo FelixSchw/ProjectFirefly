@@ -52,11 +52,9 @@ extracted_features = extract_features(trainingDataPredictors, column_id="Time", 
 impute(extracted_features)
 features_filtered = select_features(extracted_features, trainingDataTargetsSeries)
 
-# features_filtered_direct = extract_relevant_features(trainingDataPredictors, trainingDataTargetsSeries, column_id='Time', column_sort='120Werte')
-
 #Write data to csv for prediction
 os.chdir(pathInterface)
 cwd = os.getcwd()
 
 dataForRegression = pd.concat([features_filtered, trainingDataTargets], axis=1, join_axes=[trainingDataTargets.index])
-extracted_features.to_csv("timeSeriesCharac.csv")
+dataForRegression.to_csv("TimeSeriesCharac.csv")

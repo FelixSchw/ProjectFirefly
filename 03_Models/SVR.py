@@ -64,15 +64,19 @@ for i in filenames:
     #Initialisierung der Error-Funktion
     scorer = make_scorer(score_func=errorFunction, greater_is_better=False)
 
-    #Cross Validation von Ridge Parameters
-    alphas = np.array([0, 1e-20, 1e-10, 1e-5, 0.0001, 0.001, 0.01, 0.1, 1, 5, 10, 50, 100, 1000, 10000])
-    alphas_grid = dict(alpha=alphas)
-    clf_ridge = linear_model.Ridge()
-    grid = GridSearchCV(estimator=clf_ridge, param_grid=alphas_grid, cv=5, scoring=scorer)
-    grid.fit(dataForRegression_X, dataForRegression_y)
-    print("\nRSME k-folded (k=5) Ridge-Regressions with different alpha:")
+    # cross validation of SVR parameters
+    Cs = np.array([0.01, 0.1, 1, 10, 100])
+    Epsilons = np.array([0.001, 0.01, 0.1, 1, 10, 100])
+    Gammas = np.array([1e-20, 1e-10, 1e-5, 0.0001, 0.001, 0.01, 0.1, 1, 5, 10, 50, 100, 1000, 10000])
+    Param_grid = dict(C=Cs, gamma=Gammas, epsilon=Epsilons)
+    clf_svr = SVR(kernel='rbf')
+    grid = GridSearchCV(estimator=clf_svr, param_grid=Param_grid, cv=5, scoring=scorer)
+    grid.fit(dataForRegression_X, np.ravel(dataForRegression_y))
+    print("\nRSME k-folded (k=5) SVR-Regressions with different alpha:")
     print(*grid.grid_scores_, sep="\n")
-    print("\nThe best alpha for Regression is:", grid.best_estimator_.alpha)
+    print("\nThe best C for Regression is:", grid.best_estimator_.C)
+    print("The best Epsilon for Regression is:", grid.best_estimator_.epsilon)
+    print("The best Gamma for Regression is:", grid.best_estimator_.gamma)
 
     #Aufteilen von trainingData in Subsets von Trainings- und "Test"-Trainingsdaten mit Parametern seed & test_size
     seed = 1
@@ -80,26 +84,26 @@ for i in filenames:
     X_train, X_test, y_train, y_test = cross_validation.train_test_split(dataForRegression_X, dataForRegression_y, test_size=test_size, random_state=seed)
 
     #Defintion verschiedener Modelle
-    ridge = linear_model.Ridge(alpha=grid.best_estimator_.alpha)
+    svr = SVR(kernel='rbf', C=grid.best_estimator_.C, epsilon=grid.best_estimator_.epsilon, gamma=grid.best_estimator_.gamma)
 
     #Auswahl des Modells
-    clf1 = ridge
+    clf1 = svr
 
     #training of classifier
-    clf1.fit(X_train, y_train)
+    clf1.fit(X_train, np.ravel(y_train))
 
     #Prediction des Subsets von "Test"-Trainingsdaten mit clf1
     prediction_clf1 = pd.DataFrame(clf1.predict(X_test))
     prediction_clf1 = prediction_clf1.set_index(X_test.index)
     prediction_clf1.columns = ['Predictions']
     prediction_clf1_solution = pd.concat([X_test, prediction_clf1, y_test], axis=1, join_axes=[X_test.index])
-    print("Prediction using ridge (clf1): ")
+    print("Prediction using svr (clf1): ")
     print(prediction_clf1_solution)
 
     ###Berechnung des Prediktion-Errors
     error_clf1 = clf1.score(X_train, y_train)
-    print("R^2 of ridge (clf1) on training data: ", error_clf1)
+    print("R^2 of svr (clf1) on training data: ", error_clf1)
     errorFunction_clf1 = errorFunction(prediction_clf1, y_test)
-    print("Error-Function of ridge (clf1) on test data: ", errorFunction_clf1)
+    print("Error-Function of svr (clf1) on test data: ", errorFunction_clf1)
     errorUsingMedian = errorFunction([np.mean(y_test) for i in range(0,len(y_test))], y_test)
     print("Error-Function of always predicting mean: ", errorUsingMedian)
