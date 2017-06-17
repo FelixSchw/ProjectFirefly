@@ -40,16 +40,16 @@ filenames.append("TimeSeriesCharac.csv")
 #filenames.append("ARMAX.csv")
 
 ## loop through all files
-for i in filenames:
-    dataForRegression = pd.read_csv(i, parse_dates=['Time'], date_parser=dateparse)
+for file in filenames:
+    dataForRegression = pd.read_csv(file, parse_dates=['Time'], date_parser=dateparse)
     dataForRegression = dataForRegression.set_index('Time')
-    if (i == "SnapZero.csv"):
+    if (file == "SnapZero.csv"):
         print("\n### These are the results of the SnapZero Ridge Regression ###")
-    if (i == "SnapLag.csv"):
+    if (file == "SnapLag.csv"):
         print("\n### These are the results of the SnapLag Ridge Regression ###")
-    if (i == "TimeSeriesCharac.csv"):
+    if (file == "TimeSeriesCharac.csv"):
         print("\n### These are the results of the TimeSeriesCharac Ridge Regression ###")
-    if (i == "ARMAX.csv"):
+    if (file == "ARMAX.csv"):
         print("\n### These are the results of the ARMAX Ridge Regression ###")
 
     #Aufteilen in Predictors und Targets
@@ -103,3 +103,23 @@ for i in filenames:
     print("Error-Function of ridge (clf1) on test data: ", errorFunction_clf1)
     errorUsingMedian = errorFunction([np.mean(y_test) for i in range(0,len(y_test))], y_test)
     print("Error-Function of always predicting mean: ", errorUsingMedian)
+
+    #Prediction von allen Werten für Auswertung in csv
+    predictionAll_clf1 = pd.DataFrame(clf1.predict(dataForRegression_X))
+    predictionAll_clf1 = predictionAll_clf1.set_index(dataForRegression_X.index)
+    predictionAll_clf1.columns = ['Predictions']
+    predictionAll_clf1_solution = pd.concat([predictionAll_clf1, dataForRegression_y], axis=1, join_axes=[predictionAll_clf1.index])
+    koeffizienten = pd.DataFrame(np.concatenate((np.array([dataForRegression_X.columns]),clf1.coef_), axis=0)).transpose()
+    koeffizienten.columns = ['Name_Koeffizienten', 'Wert_Koeffizienten']
+    if (file == "SnapZero.csv"):
+        predictionAll_clf1_solution.to_csv("RidgeSnapZeroResults.csv")
+        koeffizienten.to_csv("RidgeSnapZeroCoef.csv")
+    if (file == "SnapLag.csv"):
+        predictionAll_clf1_solution.to_csv("RidgeSnapLagResults.csv")
+        koeffizienten.to_csv("RidgeSnapLagCoef.csv")
+    if (file == "TimeSeriesCharac.csv"):
+        predictionAll_clf1_solution.to_csv("RidgeTimeSeriesCharacResults.csv")
+        koeffizienten.to_csv("RidgeTimeSeriesCharacCoef.csv")
+    if (file == "ARMAX.csv"):
+        predictionAll_clf1_solution.to_csv("RidgeARMAXResults.csv")
+        koeffizienten.to_csv("RidgeARMAXCoef.csv")
