@@ -36,8 +36,8 @@ dateparse = lambda x: pd.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
 ## train the models for all files generated in 02_TrainingSetGeneration
 filenames = []
 filenames.append("SnapZero.csv")
-#filenames.append("SnapLag.csv")
-#filenames.append("TimeSeriesCharac.csv")
+filenames.append("SnapLag.csv")
+filenames.append("TimeSeriesCharac.csv")
 #filenames.append("ARMAX.csv")
 
 ## loop through all files
@@ -83,51 +83,75 @@ for i in filenames:
     results = cross_val_score(estimator,X ,Y , cv=kfold)
     print("Original " + i + ": %.2f (%.2f) MSE" % (results.mean(), results.std()))
 
+    # fit model with entire X as training set and make predictions
+    estimator.fit(X,Y)
+    predictions = estimator.predict(X)
+    to_save = pd.DataFrame(
+        {'Time': dataForRegression.index,
+         'Predictions': predictions,
+         'Feinheit': Y
+         }
+    )
+    to_save = to_save.set_index('Time')
+    filename_to_save = "ANN" + i[:-4] + "Results.csv"
+    to_save.to_csv(filename_to_save)
+
+    # standardize dataset
+    #std_scale = preprocessing.StandardScaler().fit(X)
+    #X_std = std_scale.transform(X)
+    #http://sebastianraschka.com/Articles/2014_about_feature_scaling.html#standardization-and-min-max-scaling
+
     # evaluate model with standardized dataset
-    np.random.seed(seed)
-    estimators = []
-    estimators.append(('standardize', StandardScaler()))
-    estimators.append(('mlp', KerasRegressor(build_fn=baseline_model, epochs=50, batch_size=5, verbose=0)))
-    pipeline = Pipeline(estimators)
-    kfoldS = KFold(n_splits=10, random_state=seed)
-    resultsS = cross_val_score(pipeline, X, Y, cv=kfoldS)
-    print("Standardized " + i + ": %.2f (%.2f) MSE" % (resultsS.mean(), results.std()))
+    #estimatorS = KerasRegressor(build_fn=baseline_model, nb_epoch=100, batch_size=5, verbose=0)
+    #kfold = KFold(n_splits=10, random_state=seed)
+    #resultsS = cross_val_score(estimatorS, X_std, Y, cv=kfold)
+    #print("Standardized " + i + ": %.2f (%.2f) MSE" % (resultsS.mean(), resultsS.std()))
+
+    # evaluate model with standardized dataset
+    #np.random.seed(seed)
+    #estimatorsS = []
+    #estimatorsS.append(('standardize', StandardScaler()))
+    #estimatorsS.append(('mlp', KerasRegressor(build_fn=baseline_model, epochs=50, batch_size=5, verbose=0)))
+    #pipelineS = Pipeline(estimatorsS)
+    #kfoldS = KFold(n_splits=10, random_state=seed)
+    #resultsS = cross_val_score(pipelineS, X, Y, cv=kfoldS)
+    #print("Standardized " + i + ": %.2f (%.2f) MSE" % (resultsS.mean(), resultsS.std()))
 
     # define the model for a deeper network
-    def larger_model():
+    #def larger_model():
         # create model
-        model = Sequential()
-        model.add(Dense(numberOfPredictors, input_dim=numberOfPredictors, kernel_initializer='normal', activation='relu'))
-        model.add(Dense(6, kernel_initializer='normal', activation='relu'))
-        model.add(Dense(1, kernel_initializer='normal'))
+        #modelD = Sequential()
+        #modelD.add(Dense(numberOfPredictors, input_dim=numberOfPredictors, kernel_initializer='normal', activation='relu'))
+        #modelD.add(Dense(6, kernel_initializer='normal', activation='relu'))
+        #modelD.add(Dense(1, kernel_initializer='normal'))
         # Compile model
-        model.compile(loss='mean_squared_error', optimizer='adam')
-        return model
+        #modelD.compile(loss='mean_squared_error', optimizer='adam')
+        #return modelD
 
-    np.random.seed(seed)
-    estimators = []
-    estimators.append(('standardize', StandardScaler()))
-    estimators.append(('mlp', KerasRegressor(build_fn=larger_model, epochs=50, batch_size=5, verbose=0)))
-    pipeline = Pipeline(estimators)
-    kfold = KFold(n_splits=10, random_state=seed)
-    resultsD = cross_val_score(pipeline, X, Y, cv=kfold)
-    print("Larger " + i + ": %.2f (%.2f) MSE" % (resultsD.mean(), results.std()))
+    #np.random.seed(seed)
+    #estimatorsD = []
+    #estimatorsD.append(('standardize', StandardScaler()))
+    #estimatorsD.append(('mlp', KerasRegressor(build_fn=larger_model, epochs=50, batch_size=5, verbose=0)))
+    #pipelineD = Pipeline(estimatorsD)
+    #kfoldD = KFold(n_splits=10, random_state=seed)
+    #resultsD = cross_val_score(pipeline, X, Y, cv=kfoldD)
+    #print("Larger " + i + ": %.2f (%.2f) MSE" % (resultsD.mean(), resultsD.std()))
 
     # define wider model
-    def wider_model():
+    #def wider_model():
         # create model
-        model = Sequential()
-        model.add(Dense(20, input_dim=numberOfPredictors, kernel_initializer='normal', activation='relu'))
-        model.add(Dense(1, kernel_initializer='normal'))
+        #modelW = Sequential()
+        #modelW.add(Dense(20, input_dim=numberOfPredictors, kernel_initializer='normal', activation='relu'))
+        #modelW.add(Dense(1, kernel_initializer='normal'))
         # Compile model
-        model.compile(loss='mean_squared_error', optimizer='adam')
-        return model
+        #modelW.compile(loss='mean_squared_error', optimizer='adam')
+        #return modelW
 
-    np.random.seed(seed)
-    estimators = []
-    estimators.append(('standardize', StandardScaler()))
-    estimators.append(('mlp', KerasRegressor(build_fn=wider_model, epochs=100, batch_size=5, verbose=0)))
-    pipeline = Pipeline(estimators)
-    kfold = KFold(n_splits=10, random_state=seed)
-    resultsW = cross_val_score(pipeline, X, Y, cv=kfold)
-    print("Wider " + i + ": %.2f (%.2f) MSE" % (resultsW.mean(), results.std()))
+    #np.random.seed(seed)
+    #estimatorsW = []
+    #estimatorsW.append(('standardize', StandardScaler()))
+    #estimatorsW.append(('mlp', KerasRegressor(build_fn=wider_model, epochs=100, batch_size=5, verbose=0)))
+    #pipelineW = Pipeline(estimatorsW)
+    #kfoldW = KFold(n_splits=10, random_state=seed)
+    #resultsW = cross_val_score(pipelineW, X, Y, cv=kfoldW)
+    #print("Wider " + i + ": %.2f (%.2f) MSE" % (resultsW.mean(), resultsW.std()))

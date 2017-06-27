@@ -15,7 +15,7 @@ def errorFunction(y,y_pred):
     return accuracy
 
 #Fetching training data set
-felixOrLeo = "f"
+felixOrLeo = "l"
 if (felixOrLeo == "f"):
     pathData = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze"
     pathInterface = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Interface"
@@ -41,6 +41,10 @@ filenames.append("SVRSnapZeroResults.csv")
 filenames.append("SVRSnapLagResults.csv")
 filenames.append("SVRTimeSeriesCharacResults.csv")
 # filenames.append("SVRARMAXResults.csv")
+filenames.append("ANNSnapZeroResults.csv")
+filenames.append("ANNSnapLagResults.csv")
+filenames.append("ANNTimeSeriesCharacResults.csv")
+#filenames.append("ANNSnapZeroResults.csv")
 
 run_once = 0
 
