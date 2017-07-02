@@ -13,7 +13,7 @@ import os
 ###Change working directory###
 from sklearn.preprocessing import StandardScaler
 
-felixOrLeo = "f"
+felixOrLeo = "l"
 
 if (felixOrLeo == "f"):
     pathData = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze"
@@ -33,20 +33,17 @@ trainingDataTargets = trainingDataTargets.set_index('Time')
 os.chdir(pathInterface)
 cwd = os.getcwd()
 trainingDataPredictors = pd.read_csv('PreprocessedPredictors.csv', header=[0, 1], skipinitialspace=True, tupleize_cols=True)
-trainingDataPredictors.columns = pd.MultiIndex.from_tuples(trainingDataPredictors.columns)
-# trainingDataPredictors.set_index('Attribute')
-
-### extract list with parameter column names
-paramColumns = [list(x) for x in trainingDataPredictors.columns.levels]
-paramColumns = paramColumns[0][1:-1]
+trainingDataPredictors = trainingDataPredictors.drop(trainingDataPredictors.columns[0], axis=1)
+trainingDataPredictors.columns = pd.MultiIndex.from_tuples(trainingDataPredictors.columns, names=['Attribute', '120Werte'])
+trainingDataPredictors.columns = trainingDataPredictors.columns.set_levels(trainingDataPredictors.columns.levels[1].astype(int), level=1)
 
 ### create dataframe for predictor snapshot
 ArrayAmountOfTargets = [i for i in range(0,len(trainingDataTargets))]
-ArrayAttributes = list(paramColumns)
+ArrayAttributes = trainingDataPredictors.columns.levels[0]
 predictorsSnapshot = pd.DataFrame(index=ArrayAmountOfTargets, columns=ArrayAttributes)
 
 ### create snapLag.csv
-ArrayAttributesDelay = [25,10,22,3,0,0,0,62]
+ArrayAttributesDelay = [25,10,22,3,0,0,0,0,62]
 ###Zuordnen 1 Prediktor jedes Attributs zu TrainingDataAllocSmall
 for i in range(0, len(trainingDataTargets)):
     for j in range(0, len(ArrayAttributes)):
@@ -61,6 +58,6 @@ dataForRegression = dataForRegression.dropna()
 
 #Konvertieren in float64 dtype
 for j in range(0, len(ArrayAttributes)):
-    dataForRegression.ix[:, paramColumns[j]] = pd.to_numeric(dataForRegression[paramColumns[j]])
+    dataForRegression.ix[:, ArrayAttributes[j]] = pd.to_numeric(dataForRegression[ArrayAttributes[j]])
 
-dataForRegression.to_csv("SnapLag.csv")
+dataForRegression.to_csv("SnapLagHihihihi.csv")
