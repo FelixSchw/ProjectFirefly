@@ -60,4 +60,4 @@ dataForRegression = dataForRegression.dropna()
 for j in range(0, len(ArrayAttributes)):
     dataForRegression.ix[:, ArrayAttributes[j]] = pd.to_numeric(dataForRegression[ArrayAttributes[j]])
 
-dataForRegression.to_csv("SnapLagHihihihi.csv")
+dataForRegression.to_csv("SnapLag.csv")
