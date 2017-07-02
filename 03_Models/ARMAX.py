@@ -55,28 +55,4 @@ armax = sm.tsa.ARMA(y, order=(1, 1), exog=u).fit()
 ### im array u sind noch nuller und ausreißer - um diese zu finden
 np.savetxt("NullerAusreisserfuerARMAX.csv", u, delimiter=",")
 
-
-
-### create dataframe for predictor snapshot
-ArrayAmountOfTargets = [i for i in range(0,len(trainingDataTargets))]
-predictorsSnapshot = pd.DataFrame(index=ArrayAmountOfTargets, columns=ArrayAttributes)
-
-### create snapLag.csv
-ArrayAttributesDelay = [25,10,22,3,0,0,0,0,62]
-###Zuordnen 1 Prediktor jedes Attributs zu TrainingDataAllocSmall
-for i in range(0, len(trainingDataTargets)):
-    for j in range(0, len(ArrayAttributes)):
-        predictorsSnapshot.loc[i,ArrayAttributes[j]] = trainingDataPredictors.ix[i, ArrayAttributes[j]][ArrayAttributesDelay[j]]
-
-###Zusammenfügen Prediktoren und Target
-predictorsSnapshot = predictorsSnapshot.set_index(trainingDataTargets.index)
-dataForRegression = pd.concat([predictorsSnapshot, trainingDataTargets], axis=1, join_axes=[trainingDataTargets.index])
-
-#Löschen der Spalten mit Null-Werten
-dataForRegression = dataForRegression.dropna()
-
-#Konvertieren in float64 dtype
-for j in range(0, len(ArrayAttributes)):
-    dataForRegression.ix[:, ArrayAttributes[j]] = pd.to_numeric(dataForRegression[ArrayAttributes[j]])
-
-dataForRegression.to_csv("SnapLag.csv")
+### prediction noch zu machen

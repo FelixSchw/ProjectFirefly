@@ -36,7 +36,7 @@ filenames = []
 filenames.append("SnapZero.csv")
 filenames.append("SnapLag.csv")
 filenames.append("TimeSeriesCharac.csv")
-#filenames.append("ARMAX.csv")
+filenames.append("ARX.csv")
 
 ## loop through all files
 for file in filenames:
@@ -48,7 +48,7 @@ for file in filenames:
         print("\n### These are the results of the SnapLag Lasso Regression ###")
     if (file == "TimeSeriesCharac.csv"):
         print("\n### These are the results of the TimeSeriesCharac Lasso Regression ###")
-    if (file == "ARMAX.csv"):
+    if (file == "ARX.csv"):
         print("\n### These are the results of the ARMAX Lasso Regression ###")
 
     #Aufteilen in Predictors und Targets
@@ -119,6 +119,6 @@ for file in filenames:
     if (file == "TimeSeriesCharac.csv"):
         predictionAll_clf1_solution.to_csv("LassoTimeSeriesCharacResults.csv")
         koeffizienten.to_csv("LassoTimeSeriesCharacCoef.csv")
-    if (file == "ARMAX.csv"):
-        predictionAll_clf1_solution.to_csv("LassoARMAXResults.csv")
-        koeffizienten.to_csv("LassoARMAXCoef.csv")
+    if (file == "ARX.csv"):
+        predictionAll_clf1_solution.to_csv("LassoARXResults.csv")
+        koeffizienten.to_csv("LassoARXCoef.csv")

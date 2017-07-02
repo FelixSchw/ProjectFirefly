@@ -37,7 +37,7 @@ filenames = []
 filenames.append("SnapZero.csv")
 filenames.append("SnapLag.csv")
 filenames.append("TimeSeriesCharac.csv")
-#filenames.append("ARMAX.csv")
+filenames.append("ARX.csv")
 
 ## loop through all files
 for file in filenames:
@@ -49,7 +49,7 @@ for file in filenames:
         print("\n### These are the results of the SnapLag Ridge Regression ###")
     if (file == "TimeSeriesCharac.csv"):
         print("\n### These are the results of the TimeSeriesCharac Ridge Regression ###")
-    if (file == "ARMAX.csv"):
+    if (file == "ARX.csv"):
         print("\n### These are the results of the ARMAX Ridge Regression ###")
 
     #Aufteilen in Predictors und Targets
@@ -120,6 +120,6 @@ for file in filenames:
     if (file == "TimeSeriesCharac.csv"):
         predictionAll_clf1_solution.to_csv("RidgeTimeSeriesCharacResults.csv")
         koeffizienten.to_csv("RidgeTimeSeriesCharacCoef.csv")
-    if (file == "ARMAX.csv"):
-        predictionAll_clf1_solution.to_csv("RidgeARMAXResults.csv")
-        koeffizienten.to_csv("RidgeARMAXCoef.csv")
+    if (file == "ARX.csv"):
+        predictionAll_clf1_solution.to_csv("RidgeARXResults.csv")
+        koeffizienten.to_csv("RidgeARXCoef.csv")

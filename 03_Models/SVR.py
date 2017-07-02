@@ -37,7 +37,7 @@ filenames = []
 filenames.append("SnapZero.csv")
 filenames.append("SnapLag.csv")
 filenames.append("TimeSeriesCharac.csv")
-#filenames.append("ARMAX.csv")
+filenames.append("ARX.csv")
 
 ## loop through all files
 for file in filenames:
@@ -49,7 +49,7 @@ for file in filenames:
         print("\n### These are the results of the SnapLag SVR Regression ###")
     if (file == "TimeSeriesCharac.csv"):
         print("\n### These are the results of the TimeSeriesCharac SVR Regression ###")
-    if (file == "ARMAX.csv"):
+    if (file == "ARX.csv"):
         print("\n### These are the results of the ARMAX SVR Regression ###")
 
     #Aufteilen in Predictors und Targets
@@ -119,5 +119,5 @@ for file in filenames:
         predictionAll_clf1_solution.to_csv("SVRSnapLagResults.csv")
     if (file == "TimeSeriesCharac.csv"):
         predictionAll_clf1_solution.to_csv("SVRTimeSeriesCharacResults.csv")
-    if (file == "ARMAX.csv"):
-        predictionAll_clf1_solution.to_csv("SVRARMAXResults.csv")
+    if (file == "ARX.csv"):
+        predictionAll_clf1_solution.to_csv("SVRARXResults.csv")
