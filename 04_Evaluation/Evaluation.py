@@ -8,14 +8,10 @@ import numpy as np
 import os
 import math
 from sklearn.metrics import make_scorer, mean_squared_error
-
-#Defition einer Error-Funktion (RMSE)
-def errorFunction(y,y_pred):
-    accuracy = math.sqrt(mean_squared_error(y, y_pred))
-    return accuracy
+import Helper as hlpr
 
 #Fetching training data set
-felixOrLeo = "l"
+felixOrLeo = "f"
 if (felixOrLeo == "f"):
     pathData = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze"
     pathInterface = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Interface"
@@ -55,7 +51,7 @@ for file in filenames:
 
     ###Berechnung des Errors wenn immer mean vorhergesagt wird
     if (run_once == 0):
-        errorUsingMedian = errorFunction([np.mean(dataForEvaluation['Feinheit']) for i in range(0, len(dataForEvaluation['Feinheit']))], dataForEvaluation['Feinheit'])
+        errorUsingMedian = hlpr.errorFunction([np.mean(dataForEvaluation['Feinheit']) for i in range(0, len(dataForEvaluation['Feinheit']))], dataForEvaluation['Feinheit'])
         print("Error-Function of always predicting mean (", np.mean(dataForEvaluation['Feinheit']), ") : ", errorUsingMedian)
         run_once = 1
 

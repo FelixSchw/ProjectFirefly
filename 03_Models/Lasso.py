@@ -11,12 +11,7 @@ from sklearn import cross_validation, linear_model
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import make_scorer, mean_squared_error
 from sklearn import preprocessing
-# from Helper import errorFunction
-
-#Defition einer Error-Funktion (RMSE)
-def errorFunction(y,y_pred):
-    accuracy = math.sqrt(mean_squared_error(y, y_pred))
-    return accuracy
+import Helper as hlpr
 
 #Fetching training data set
 felixOrLeo = "f"
@@ -61,7 +56,7 @@ for file in filenames:
     dataForRegression_X.columns = dataForRegression.iloc[:, :len(dataForRegression.columns) - 1].columns
 
     #Initialisierung der Error-Funktion
-    scorer = make_scorer(score_func=errorFunction, greater_is_better=False)
+    scorer = make_scorer(score_func=hlpr.errorFunction, greater_is_better=False)
 
     #Cross Validation von Ridge Parameters
     alphas = np.array([1e-20, 1e-10, 1e-5, 0.0001, 0.001, 0.01, 0.1, 1, 5, 10, 50, 100, 1000, 10000])
@@ -98,9 +93,9 @@ for file in filenames:
     ###Berechnung des Prediktion-Errors
     error_clf1 = clf1.score(X_train, y_train)
     print("R^2 of lasso (clf1) on training data: ", error_clf1)
-    errorFunction_clf1 = errorFunction(prediction_clf1, y_test)
+    errorFunction_clf1 = hlpr.errorFunction(prediction_clf1, y_test)
     print("Error-Function of lasso (clf1) on test data: ", errorFunction_clf1)
-    errorUsingMedian = errorFunction([np.mean(y_test) for i in range(0,len(y_test))], y_test)
+    errorUsingMedian = hlpr.errorFunction([np.mean(y_test) for i in range(0,len(y_test))], y_test)
     print("Error-Function of always predicting mean: ", errorUsingMedian)
 
     #Prediction von allen Werten für Auswertung in csv
