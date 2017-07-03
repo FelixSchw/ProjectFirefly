@@ -105,7 +105,7 @@ for i in filenames:
     def deeper_model():
         modelD = Sequential()
         modelD.add(Dense(numberOfPredictors, input_dim=numberOfPredictors, kernel_initializer='normal', activation='relu'))
-        modelD.add(Dense(6, kernel_initializer='normal', activation='relu'))
+        modelD.add(Dense(3, kernel_initializer='normal', activation='relu'))
         modelD.add(Dense(1, kernel_initializer='normal'))
         modelD.compile(loss='mean_squared_error', optimizer='adam', metrics=['mean_squared_error'])
         return modelD
@@ -139,7 +139,7 @@ for i in filenames:
 
 
     ##### Fit baseline model on standardized training data, make prediction on test data and inverse transform it --> yields 0.39
-    np.random.seed(1)
+    np.random.seed(59)
     estimator_standardized = KerasRegressor(build_fn=baseline_model)
     estimator_standardized.fit(X_train_standardized, Y_train_standardized, batch_size=3, epochs=200, verbose=2)
     predictions_standardized = estimator_standardized.predict(X_test_standardized)[:, None]
@@ -154,7 +154,7 @@ for i in filenames:
          'Predictions': predictions_standardizedinversed,
          'Feinheit': Y_test})
     to_save = to_save.set_index('Time')
-    #to_save.to_csv(current_model)
+    to_save.to_csv(current_model)
 
 
     ##### Just for fun: using all X data and 10fold cross validation, calculate RMSE
@@ -162,3 +162,5 @@ for i in filenames:
     #kfold = KFold(n_splits=10, random_state=seed) #Nacho --> kein k-Fold
     #results = cross_val_score(estimator,X ,Y , cv=kfold)
     #print(filename_to_save + " with entire X/Y dataset and 10fold cross validation has RMSE of: " + str(math.sqrt(results.mean())))
+
+    ##### Grid search http://machinelearningmastery.com/grid-search-hyperparameters-deep-learning-models-python-keras/
