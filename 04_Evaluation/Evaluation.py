@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 import os
 import Helper as hlpr
+import matplotlib.pyplot as plt
+#import seaborn as sns
 
 #Fetching training data set
 felixOrLeo = "f"
@@ -35,12 +37,15 @@ filenames.append("SVRSnapZeroResults.csv")
 filenames.append("SVRSnapLagResults.csv")
 filenames.append("SVRTimeSeriesCharacResults.csv")
 filenames.append("SVRARXResults.csv")
-filenames.append("ANNSnapZeroResults.csv")
-filenames.append("ANNSnapLagResults.csv")
-filenames.append("ANNTimeSeriesCharacResults.csv")
+#filenames.append("ANNSnapZeroResults.csv")
+#filenames.append("ANNSnapLagResults.csv")
+#filenames.append("ANNTimeSeriesCharacResults.csv")
 #filenames.append("ANNSnapZeroResults.csv")
 
+toleranceInterval = 0.5
+evaluationResults = pd.DataFrame(columns=('Method', 'ValueOf_RMSE', 'PercentageInTolorance'))
 run_once = 0
+plotCounter = 3
 
 ## loop through all files
 for file in filenames:
@@ -49,10 +54,49 @@ for file in filenames:
 
     ###Berechnung des Errors wenn immer mean vorhergesagt wird
     if (run_once == 0):
-        errorUsingMedian = hlpr.errorFunction([np.mean(dataForEvaluation['Feinheit']) for i in range(0, len(dataForEvaluation['Feinheit']))], dataForEvaluation['Feinheit'])
-        print("Error-Function of always predicting mean (", np.mean(dataForEvaluation['Feinheit']), ") : ", errorUsingMedian)
+        print("### General information for better understanding of Evaluation ###")
+        rangeOfData = dataForEvaluation['Feinheit'].max() - dataForEvaluation['Feinheit'].min()
+        print("The range (Max-Min) of the values Feinheit is: ", rangeOfData)
+        errorUsingMean = hlpr.errorFunction([np.mean(dataForEvaluation['Feinheit']) for i in range(0, len(dataForEvaluation['Feinheit']))], dataForEvaluation['Feinheit'])
+        print("Error-Function of always predicting mean (", np.mean(dataForEvaluation['Feinheit']), ") : ", errorUsingMean, "\n")
         run_once = 1
 
     ###Berechnung des Prediktion-Errors
-    error = errorFunction(dataForEvaluation['Predictions'], dataForEvaluation['Feinheit'])
-    print("Error-Function of", file, ": ", error)
+    error = hlpr.errorFunction(dataForEvaluation['Predictions'], dataForEvaluation['Feinheit'])
+
+    ###Berechnung der Prozentzahl in Toleranz-Bereich
+    dataForEvaluation['inTolerance'] = np.where(abs(dataForEvaluation['Predictions']-dataForEvaluation['Feinheit']) <= toleranceInterval, 'Good', 'Bad')
+    amountGood = dataForEvaluation['inTolerance'].value_counts().loc['Good']
+    amountBad = dataForEvaluation['inTolerance'].value_counts().loc['Bad']
+    percentInTolerance = amountGood / (amountGood+amountBad)
+
+    ###Speichern in Dataframe
+    evaluationResults.loc[len(evaluationResults)] = [file, error, percentInTolerance]
+
+    ###Plot Diagramms
+    dataForPlot = dataForEvaluation[['Feinheit', 'Predictions']]
+    dataForPlot = dataForPlot.sort_values('Feinheit')
+    dataForPlot['Index'] = [i for i in range(0, len(dataForEvaluation))]
+
+    plotCounter += 1
+    if (plotCounter > 3):
+        f, axarr = plt.subplots(4, sharex=True)
+        # f.suptitle('All Diagramms')
+        plotCounter = 0
+
+    axarr[plotCounter].set_title(file)
+    axarr[plotCounter].scatter(dataForPlot['Index'], dataForEvaluation['Feinheit'], color='#1f77b4')
+    axarr[plotCounter].scatter(dataForPlot['Index'], dataForEvaluation['Predictions'], color='#d62728')
+    axarr[plotCounter].errorbar(dataForPlot['Index'], dataForEvaluation['Predictions'], yerr=toleranceInterval, color='#d62728',
+                                ecolor='r', fmt='o', capsize=5)
+
+    #plt.savefig('testEvaluation.png', bbox_inches='tight')
+
+
+##Ausgabe der Ergebnisse
+print(evaluationResults)
+evaluationResults.to_csv('evaluationResults.csv')
+
+figManager = plt.get_current_fig_manager()
+figManager.window.showMaximized()
+plt.show()
