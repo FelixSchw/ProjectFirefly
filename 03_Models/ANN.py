@@ -20,7 +20,13 @@ from keras.layers import Dense
 from keras.wrappers.scikit_learn import KerasRegressor
 from sklearn.preprocessing import StandardScaler
 
-#Fetching training data set
+##### Defition einer Error-Funktion (RMSE)
+def errorFunction(y, y_pred):
+    accuracy = math.sqrt(mean_squared_error(y, y_pred))
+    return accuracy
+
+
+##### Fetching training data set
 felixOrLeo = "l"
 if (felixOrLeo == "f"):
     pathData = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze"
@@ -28,45 +34,47 @@ if (felixOrLeo == "f"):
 else:
     pathData = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze"
     pathInterface = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Interface"
-
 os.chdir(pathInterface)
 cwd = os.getcwd()
 dateparse = lambda x: pd.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
 
-## train the models for all files generated in 02_TrainingSetGeneration
+
+##### train the models for all files generated in 02_TrainingSetGeneration
 filenames = []
 filenames.append("SnapZero.csv")
 #filenames.append("SnapLag.csv")
 #filenames.append("TimeSeriesCharac.csv")
 #filenames.append("ARMAX.csv")
 
-## loop through all files
+
 for i in filenames:
+
+
+    ##### Read file with NN data, set index, and calculate # of predictors
     dataForRegression = pd.read_csv(i, parse_dates=['Time'], date_parser=dateparse)
     dataForRegression = dataForRegression.set_index('Time')
-
-    #Vorgehen Tutorial
-    # load dataset
-    #dataframe = pd.read_csv("/Users/leopoldspenner/Documents/python/housing.csv", delim_whitespace=True, header=None)
-    #datasett = dataframe.values
-    # split into input (X) and output (Y) variables
-    #XX = datasett[:,0:13]
-    #YY = datasett[:,13]
-
-    #Standardisieren der Trainingsdaten
-    #dataForRegression_X = pd.DataFrame(preprocessing.scale(dataForRegression_X))
-    #dataForRegression_X = dataForRegression_X.set_index(dataForRegression.ix[:,:len(trainingData.columns)].index)
+    numberOfPredictors = (len(dataForRegression.columns) - 1)
 
 
-    dataset = dataForRegression.values
-    numberOfPredictors = (len(dataForRegression.columns)-1)
-    X = dataset[:,0:numberOfPredictors]
-    Y = dataset[:,numberOfPredictors]
-    seed = 7
+    ##### Split NN data into input (X) and output(Y) data
+    dataForRegression_X = dataForRegression.iloc[:,0:numberOfPredictors]
+    dataForRegression_Y = dataForRegression.iloc[:,numberOfPredictors]
+    X = dataForRegression_X.values
+    Y = dataForRegression_Y.values
 
-    print("Data prep of " + i + " completet. Starting NN training")
 
-    # define base model
+    ##### Set seed and test_size
+    seed = 1
+    test_size = 0.2
+
+
+    ##### Split dataForRegression in subsets of test & training data with parameters seed & test-size
+    dFR_X_train, dFR_X_test, dFR_Y_train, dFR_Y_test = cross_validation.train_test_split(dataForRegression_X, dataForRegression_Y, test_size=test_size, random_state=seed)
+    X_train, X_test, Y_train, Y_test = dFR_X_train.values, dFR_X_test.values, dFR_Y_train.values, dFR_Y_test.values
+    print("Now starting: Training with X_train.shape=" + str(X_train.shape) + " and predicting with X_test.shape=" + str(X_test.shape))
+
+
+    ##### Define base model
     def baseline_model():
         # create model
         model = Sequential()
@@ -77,24 +85,30 @@ for i in filenames:
         return model
 
 
-    # evaluate model with original dataset
-    estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=5, batch_size=5, verbose=2)
-    kfold = KFold(n_splits=10, random_state=seed) #Nacho --> kein k-Fold
-    results = cross_val_score(estimator,X ,Y , cv=kfold)
-    print("Original " + i + ": %.2f (%.2f) MSE" % (results.mean(), results.std()))
+    ##### Fit baseline model on training data and make predictions using test data
+    estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=5, verbose=2)
+    estimator.fit(X_train, Y_train, batch_size=5, epochs=200, verbose=2)
+    predictions = estimator.predict(X_test)
+    current_model = "ANN" + i[:-4] + "Results.csv"
+    print(current_model + " has RMSE of: " + str(errorFunction(predictions, Y_test)))
 
-    # fit model with entire X as training set and make predictions
-    estimator.fit(X, Y, batch_size=5, epochs=5, verbose=2, validation_split=0.2)
-    predictions = estimator.predict(X)
+
+    ##### Save dataframe with results
     to_save = pd.DataFrame(
-        {'Time': dataForRegression.index,
+        {'Time': dFR_X_test.index,
          'Predictions': predictions,
-         'Feinheit': Y
-         }
-    )
+         'Feinheit': Y_test})
     to_save = to_save.set_index('Time')
-    filename_to_save = "ANN" + i[:-4] + "Results.csv"
-    #to_save.to_csv(filename_to_save)
+    to_save.to_csv(current_model)
+
+
+    ##### Just for fun: using all X data and 10fold cross validation, calculate RMSE
+    #estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=5, verbose=2)
+    #kfold = KFold(n_splits=10, random_state=seed) #Nacho --> kein k-Fold
+    #results = cross_val_score(estimator,X ,Y , cv=kfold)
+    #print(filename_to_save + " with entire X/Y dataset and 10fold cross validation has RMSE of: " + str(math.sqrt(results.mean())))
+
+
 
     # Questions Nacho
     # 1) Correct to first compile model & then invoke cross_val_score, then fit & predict?
@@ -113,6 +127,18 @@ for i in filenames:
     #kfold = KFold(n_splits=10, random_state=seed)
     #resultsS = cross_val_score(estimatorS, X_std, Y, cv=kfold)
     #print("Standardized " + i + ": %.2f (%.2f) MSE" % (resultsS.mean(), resultsS.std()))
+
+    #Vorgehen Tutorial
+    # load dataset
+    #dataframe = pd.read_csv("/Users/leopoldspenner/Documents/python/housing.csv", delim_whitespace=True, header=None)
+    #datasett = dataframe.values
+    # split into input (X) and output (Y) variables
+    #XX = datasett[:,0:13]
+    #YY = datasett[:,13]
+
+    #Standardisieren der Trainingsdaten
+    #dataForRegression_X = pd.DataFrame(preprocessing.scale(dataForRegression_X))
+    #dataForRegression_X = dataForRegression_X.set_index(dataForRegression.ix[:,:len(trainingData.columns)].index)
 
     # evaluate model with standardized dataset
     np.random.seed(seed)
