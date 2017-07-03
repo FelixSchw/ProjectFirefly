@@ -13,7 +13,7 @@ import os
 ###Change working directory###
 from sklearn.preprocessing import StandardScaler
 
-felixOrLeo = "f"
+felixOrLeo = "l"
 
 if (felixOrLeo == "f"):
     pathData = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze"
@@ -48,12 +48,6 @@ trainingDataTargets = trainingDataTargets.set_index('Time')
 # print('--------------Pearson Corr----------------')
 # print(trainingData.corr(method='pearson'))
 
-# Folgende Parameter inkludieren
-#    - Muehle_nach_Temp._C mit lag=62min
-#    - Griesse_t/h mit lag=10min
-#    - Gesamtaufgabe_t/h mit lag=22min
-#    - Frischgut_Summe_t/h mit lag=25min
-
 ###Drop irrelevant values###
 del trainingData['Frischgut_Klinker_t/h']
 del trainingData['Frischgut_Gips_t/h']
@@ -80,21 +74,6 @@ for j in range(0,len(trainingData.columns)):
     upperBoundary[trainingData.columns[j]] = trainingData[trainingData.columns[j]].median() + 1.5 * trainingData[trainingData.columns[j]].std()
     print("Variable " + trainingData.columns[j] + " has lower Boundary of " + str(lowerBoundary) + " and upper Boundary of " + str(upperBoundary))
 
-
-#Funktion um Outlier zu erkennen
-def is_outlier(points, thresh = 3.5):
-    if len(points.shape) == 1:
-        points = points[:,None]
-    median = np.median(points, axis=0)
-    if(median != 0):
-        diff = np.sum((points - median)**2, axis=-1)
-        diff = np.sqrt(diff)
-        med_abs_deviation = np.median(diff)
-        modified_z_score = 0.6745 * diff / med_abs_deviation
-    elif(median == 0):
-        modified_z_score = 0
-
-    return modified_z_score > thresh
 
 ###Multiindex-Dataframes die mit den Werten der Input-Parameter befüllt werden können###
 ArrayAttributes = list(trainingData)
