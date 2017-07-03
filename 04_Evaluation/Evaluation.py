@@ -42,7 +42,7 @@ filenames.append("SVRARXResults.csv")
 #filenames.append("ANNTimeSeriesCharacResults.csv")
 #filenames.append("ANNSnapZeroResults.csv")
 
-toleranceInterval = 0.5
+toleranceInterval = 0.25
 evaluationResults = pd.DataFrame(columns=('Method', 'ValueOf_RMSE', 'PercentageInTolorance'))
 run_once = 0
 plotCounter = 3
@@ -55,6 +55,7 @@ for file in filenames:
     ###Berechnung des Errors wenn immer mean vorhergesagt wird
     if (run_once == 0):
         print("### General information for better understanding of Evaluation ###")
+        print("The set tolerance interval is: ", toleranceInterval)
         rangeOfData = dataForEvaluation['Feinheit'].max() - dataForEvaluation['Feinheit'].min()
         print("The range (Max-Min) of the values Feinheit is: ", rangeOfData)
         errorUsingMean = hlpr.errorFunction([np.mean(dataForEvaluation['Feinheit']) for i in range(0, len(dataForEvaluation['Feinheit']))], dataForEvaluation['Feinheit'])
@@ -81,22 +82,25 @@ for file in filenames:
     plotCounter += 1
     if (plotCounter > 3):
         f, axarr = plt.subplots(4, sharex=True)
-        # f.suptitle('All Diagramms')
+        #f.suptitle('Visualizierung der Evaluation')
         plotCounter = 0
 
-    axarr[plotCounter].set_title(file)
+    RMSEString = "%1.3f" %evaluationResults.iloc[evaluationResults['Method'][evaluationResults['Method']==file].index,1]
+    PercentageString = "%1.3f" % evaluationResults.iloc[evaluationResults['Method'][evaluationResults['Method'] == file].index, 2]
+    axarr[plotCounter].set_title(file + "(" + RMSEString + " RMSE/ " + PercentageString + " InClass)")
     axarr[plotCounter].scatter(dataForPlot['Index'], dataForEvaluation['Feinheit'], color='#1f77b4')
     axarr[plotCounter].scatter(dataForPlot['Index'], dataForEvaluation['Predictions'], color='#d62728')
     axarr[plotCounter].errorbar(dataForPlot['Index'], dataForEvaluation['Predictions'], yerr=toleranceInterval, color='#d62728',
                                 ecolor='r', fmt='o', capsize=5)
 
     #plt.savefig('testEvaluation.png', bbox_inches='tight')
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
 
 
 ##Ausgabe der Ergebnisse
 print(evaluationResults)
 evaluationResults.to_csv('evaluationResults.csv')
 
-figManager = plt.get_current_fig_manager()
-figManager.window.showMaximized()
+
 plt.show()
