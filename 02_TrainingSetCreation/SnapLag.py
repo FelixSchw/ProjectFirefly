@@ -43,11 +43,11 @@ ArrayAttributes = trainingDataPredictors.columns.levels[0]
 predictorsSnapshot = pd.DataFrame(index=ArrayAmountOfTargets, columns=ArrayAttributes)
 
 ### create snapLag.csv
-ArrayAttributesDelay = [25,10,22,3,0,0,0,0,62]
+ArrayAttributesDelay = [40,1,100,95,90,62,10,10,10]
 ###Zuordnen 1 Prediktor jedes Attributs zu TrainingDataAllocSmall
 for i in range(0, len(trainingDataTargets)):
     for j in range(0, len(ArrayAttributes)):
-        predictorsSnapshot.loc[i,ArrayAttributes[j]] = trainingDataPredictors.ix[i, ArrayAttributes[j]][ArrayAttributesDelay[j]]
+        predictorsSnapshot.loc[i, ArrayAttributes[j]] = trainingDataPredictors.ix[i, (ArrayAttributes[j], 119 - ArrayAttributesDelay[j])]
 
 ###Zusammenfügen Prediktoren und Target
 predictorsSnapshot = predictorsSnapshot.set_index(trainingDataTargets.index)
