@@ -71,7 +71,7 @@ for file in filenames:
 
     #Aufteilen von trainingData in Subsets von Trainings- und "Test"-Trainingsdaten mit Parametern seed & test_size
     seed = 1
-    test_size = 0.3
+    test_size = 0.2
     X_train, X_test, y_train, y_test = cross_validation.train_test_split(dataForRegression_X, dataForRegression_y, test_size=test_size, random_state=seed)
 
     #Defintion verschiedener Modelle
@@ -99,22 +99,20 @@ for file in filenames:
     errorUsingMedian = hlpr.errorFunction([np.mean(y_test) for i in range(0,len(y_test))], y_test)
     print("Error-Function of always predicting mean: ", errorUsingMedian)
 
-    #Prediction von allen Werten für Auswertung in csv
-    predictionAll_clf1 = pd.DataFrame(clf1.predict(dataForRegression_X))
-    predictionAll_clf1 = predictionAll_clf1.set_index(dataForRegression_X.index)
-    predictionAll_clf1.columns = ['Predictions']
-    predictionAll_clf1_solution = pd.concat([predictionAll_clf1, dataForRegression_y], axis=1, join_axes=[predictionAll_clf1.index])
-    koeffizienten = pd.DataFrame(np.concatenate((np.array([dataForRegression_X.columns]),clf1.coef_), axis=0)).transpose()
+    # Predictions von Test-Set in .csv schreiben
+    prediction_clf1_solution = prediction_clf1_solution[['Feinheit','Predictions']]
+    koeffizienten = pd.DataFrame(
+        np.concatenate((np.array([dataForRegression_X.columns]), clf1.coef_), axis=0)).transpose()
     koeffizienten.columns = ['Name_Koeffizienten', 'Wert_Koeffizienten']
     if (file == "SnapZero.csv"):
-        predictionAll_clf1_solution.to_csv("RidgeSnapZeroResults.csv")
+        prediction_clf1_solution.to_csv("RidgeSnapZeroResults.csv")
         koeffizienten.to_csv("RidgeSnapZeroCoef.csv")
     if (file == "SnapLag.csv"):
-        predictionAll_clf1_solution.to_csv("RidgeSnapLagResults.csv")
+        prediction_clf1_solution.to_csv("RidgeSnapLagResults.csv")
         koeffizienten.to_csv("RidgeSnapLagCoef.csv")
     if (file == "TimeSeriesCharac.csv"):
-        predictionAll_clf1_solution.to_csv("RidgeTimeSeriesCharacResults.csv")
+        prediction_clf1_solution.to_csv("RidgeTimeSeriesCharacResults.csv")
         koeffizienten.to_csv("RidgeTimeSeriesCharacCoef.csv")
     if (file == "ARX.csv"):
-        predictionAll_clf1_solution.to_csv("RidgeARXResults.csv")
+        prediction_clf1_solution.to_csv("RidgeARXResults.csv")
         koeffizienten.to_csv("RidgeARXCoef.csv")
