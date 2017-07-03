@@ -27,6 +27,10 @@ def errorFunction(y, y_pred):
     return accuracy
 
 
+##### Set seed
+np.random.seed(1)
+
+
 ##### Fetching training data set
 felixOrLeo = "l"
 if (felixOrLeo == "f"):
@@ -99,30 +103,29 @@ for i in filenames:
 
 
     ##### Fit baseline model on training data and make predictions using test data
-    estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=400, batch_size=5, verbose=2)
-    estimator.fit(X_train, Y_train, batch_size=5, epochs=400, verbose=2)
-    predictions = estimator.predict(X_test)
+    #estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=400, batch_size=5, verbose=2)
+    #estimator.fit(X_train, Y_train, batch_size=5, epochs=400, verbose=2)
+    #predictions = estimator.predict(X_test)
     current_model = "ANN" + i[:-4] + "Results.csv"
-    print(current_model + " has RMSE of: " + str(errorFunction(predictions, Y_test)))
+    #print(current_model + " has RMSE of: " + str(errorFunction(predictions, Y_test)))
 
 
     ##### Fit baseline model on minmaxscaled training data, make prediction on test data and inverse transform it
-    estimator_minmaxscaled = KerasRegressor(build_fn=baseline_model, nb_epoch=180, batch_size=5, verbose=2)
-    estimator_minmaxscaled.fit(X_train_minmaxscaled, Y_train_minmaxscaled, batch_size=5, epochs=180, verbose=2)
-    predictions_minmaxscaled = estimator_minmaxscaled.predict(X_test_minmaxscaled)[:, None]
-    predictions_minmaxscaled_matrix = np.hstack((np.ones((len(X_test), numberOfPredictors)), predictions_minmaxscaled))
-    predictions_minmaxinversed = minmaxscaler.inverse_transform(predictions_minmaxscaled_matrix)[:,numberOfPredictors]
-    print(current_model + " (minmaxscaled) has RMSE of: " + str(errorFunction(predictions_minmaxinversed, Y_test)))
+    #estimator_minmaxscaled = KerasRegressor(build_fn=baseline_model, nb_epoch=180, batch_size=5, verbose=2)
+    #estimator_minmaxscaled.fit(X_train_minmaxscaled, Y_train_minmaxscaled, batch_size=5, epochs=180, verbose=2)
+    #predictions_minmaxscaled = estimator_minmaxscaled.predict(X_test_minmaxscaled)[:, None]
+    #predictions_minmaxscaled_matrix = np.hstack((np.ones((len(X_test), numberOfPredictors)), predictions_minmaxscaled))
+    #predictions_minmaxinversed = minmaxscaler.inverse_transform(predictions_minmaxscaled_matrix)[:,numberOfPredictors]
+    #print(current_model + " (minmaxscaled) has RMSE of: " + str(errorFunction(predictions_minmaxinversed, Y_test)))
 
 
-    ##### Fit baseline model on minmaxscaled training data, make prediction on test data and inverse transform it
-    estimator_standardized = KerasRegressor(build_fn=baseline_model, nb_epoch=400, batch_size=5, verbose=2)
-    estimator_standardized.fit(X_train_standardized, Y_train_standardized, batch_size=5, epochs=400, verbose=2)
+    ##### Fit baseline model on standardized training data, make prediction on test data and inverse transform it
+    estimator_standardized = KerasRegressor(build_fn=baseline_model)
+    estimator_standardized.fit(X_train_standardized, Y_train_standardized, batch_size=3, epochs=300, verbose=2)
     predictions_standardized = estimator_standardized.predict(X_test_standardized)[:, None]
     predictions_standardized_matrix = np.hstack((np.ones((len(X_test), numberOfPredictors)), predictions_standardized))
     predictions_standardizedinversed = standardscaler.inverse_transform(predictions_standardized_matrix)[:,numberOfPredictors]
     print(current_model + " (standardized) has RMSE of: " + str(errorFunction(predictions_standardizedinversed, Y_test)))
-
 
 
     ##### Save dataframe with results
@@ -131,7 +134,7 @@ for i in filenames:
          'Predictions': predictions_standardizedinversed,
          'Feinheit': Y_test})
     to_save = to_save.set_index('Time')
-    to_save.to_csv(current_model)
+    #to_save.to_csv(current_model)
 
 
     ##### Just for fun: using all X data and 10fold cross validation, calculate RMSE
@@ -142,50 +145,20 @@ for i in filenames:
 
 
 
-    # Questions Nacho
-    # 1) Correct to first compile model & then invoke cross_val_score, then fit & predict?
-    # 2) Why are Models fitted with standardized X so much worse?
-    # 3) Only standardize X? Not Y? What about the results?
-    # 4) Standardize using Pipeline or Sebastian Raschka?
-    # 5) MinMax Scaler
 
-    # standardize dataset
-    #std_scale = preprocessing.StandardScaler().fit(X)
-    #X_std = std_scale.transform(X)
-    #http://sebastianraschka.com/Articles/2014_about_feature_scaling.html#standardization-and-min-max-scaling
 
-    # evaluate model with standardized dataset
-    #estimatorS = KerasRegressor(build_fn=baseline_model, nb_epoch=100, batch_size=5, verbose=0)
-    #kfold = KFold(n_splits=10, random_state=seed)
-    #resultsS = cross_val_score(estimatorS, X_std, Y, cv=kfold)
-    #print("Standardized " + i + ": %.2f (%.2f) MSE" % (resultsS.mean(), resultsS.std()))
 
-    #Vorgehen Tutorial
-    # load dataset
-    #dataframe = pd.read_csv("/Users/leopoldspenner/Documents/python/housing.csv", delim_whitespace=True, header=None)
-    #datasett = dataframe.values
-    # split into input (X) and output (Y) variables
-    #XX = datasett[:,0:13]
-    #YY = datasett[:,13]
 
-    #Standardisieren der Trainingsdaten
-    #dataForRegression_X = pd.DataFrame(preprocessing.scale(dataForRegression_X))
-    #dataForRegression_X = dataForRegression_X.set_index(dataForRegression.ix[:,:len(trainingData.columns)].index)
 
-    # evaluate model with standardized dataset
-    np.random.seed(seed)
-    estimatorsS = []
-    estimatorsS.append(('standardize', StandardScaler()))
-    estimatorsS.append(('mlp', KerasRegressor(build_fn=baseline_model, epochs=50, batch_size=5, verbose=0)))
-    pipelineS = Pipeline(estimatorsS)
-    kfoldS = KFold(n_splits=10, random_state=seed)
-    resultsS = cross_val_score(pipelineS, X, Y, cv=kfoldS)
-    print("Standardized " + i + ": %.2f (%.2f) MSE" % (resultsS.mean(), resultsS.std()))
 
-    pipelineS.fit(X, Y, batch_size=5, epochs=5, verbose=2, validation_split=0.2)
+
+
+
+
+
 
     # define the model for a deeper network
-    #def larger_model():
+    #def deeper_model():
         # create model
         #modelD = Sequential()
         #modelD.add(Dense(numberOfPredictors, input_dim=numberOfPredictors, kernel_initializer='normal', activation='relu'))
@@ -198,7 +171,7 @@ for i in filenames:
     #np.random.seed(seed)
     #estimatorsD = []
     #estimatorsD.append(('standardize', StandardScaler()))
-    #estimatorsD.append(('mlp', KerasRegressor(build_fn=larger_model, epochs=50, batch_size=5, verbose=0)))
+    #estimatorsD.append(('mlp', KerasRegressor(build_fn=deeper_model, epochs=50, batch_size=5, verbose=0)))
     #pipelineD = Pipeline(estimatorsD)
     #kfoldD = KFold(n_splits=10, random_state=seed)
     #resultsD = cross_val_score(pipeline, X, Y, cv=kfoldD)
