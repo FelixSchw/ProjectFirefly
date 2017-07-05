@@ -42,7 +42,7 @@ filenames.append("SVRARXResults.csv")
 #filenames.append("ANNTimeSeriesCharacResults.csv")
 #filenames.append("ANNSnapZeroResults.csv")
 
-toleranceInterval = 0.25
+toleranceInterval = 0.325
 evaluationResults = pd.DataFrame(columns=('Method', 'ValueOf_RMSE', 'PercentageInTolorance'))
 run_once = 0
 plotCounter = 3
@@ -88,9 +88,9 @@ for file in filenames:
     RMSEString = "%1.3f" %evaluationResults.iloc[evaluationResults['Method'][evaluationResults['Method']==file].index,1]
     PercentageString = "%1.3f" % evaluationResults.iloc[evaluationResults['Method'][evaluationResults['Method'] == file].index, 2]
     axarr[plotCounter].set_title(file + "(" + RMSEString + " RMSE/ " + PercentageString + " InClass)")
-    axarr[plotCounter].scatter(dataForPlot['Index'], dataForEvaluation['Feinheit'], color='#1f77b4')
-    axarr[plotCounter].scatter(dataForPlot['Index'], dataForEvaluation['Predictions'], color='#d62728')
-    axarr[plotCounter].errorbar(dataForPlot['Index'], dataForEvaluation['Predictions'], yerr=toleranceInterval, color='#d62728',
+    axarr[plotCounter].scatter(dataForPlot['Index'], dataForPlot['Feinheit'], color='#1f77b4')
+    axarr[plotCounter].scatter(dataForPlot['Index'], dataForPlot['Predictions'], color='#d62728')
+    axarr[plotCounter].errorbar(dataForPlot['Index'], dataForPlot['Predictions'], yerr=toleranceInterval, color='#d62728',
                                 ecolor='r', fmt='o', capsize=5)
 
     #plt.savefig('testEvaluation.png', bbox_inches='tight')
@@ -101,6 +101,5 @@ for file in filenames:
 ##Ausgabe der Ergebnisse
 print(evaluationResults)
 evaluationResults.to_csv('evaluationResults.csv')
-
 
 plt.show()

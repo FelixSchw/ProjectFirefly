@@ -6,9 +6,7 @@
 import pandas as pd
 import numpy as np
 import os
-import math
 from sklearn import cross_validation, linear_model
-from sklearn.svm import SVR
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import make_scorer, mean_squared_error
 from sklearn import preprocessing
@@ -60,7 +58,8 @@ for file in filenames:
     scorer = make_scorer(score_func=hlpr.errorFunction, greater_is_better=False)
 
     #Cross Validation von Ridge Parameters
-    alphas = np.array([0, 1e-20, 1e-10, 1e-5, 0.0001, 0.001, 0.01, 0.1, 1, 5, 10, 50, 100, 1000, 10000])
+    #alphas = np.array([0, 1e-20, 1e-10, 1e-5, 0.0001, 0.001, 0.01, 0.1, 1, 5, 10, 50, 100, 500, 1000, 2000, 3000,5000,7000, 9000, 10000])
+    alphas = np.array([i for i in range(0,2000,100)])
     alphas_grid = dict(alpha=alphas)
     clf_ridge = linear_model.Ridge()
     grid = GridSearchCV(estimator=clf_ridge, param_grid=alphas_grid, cv=5, scoring=scorer)
@@ -68,6 +67,27 @@ for file in filenames:
     print("\nRSME k-folded (k=5) Ridge-Regressions with different alpha:")
     print(*grid.grid_scores_, sep="\n")
     print("\nThe best alpha for Regression is:", grid.best_estimator_.alpha)
+
+    # #Plotten von Error-Function vs. Parameter
+    # import matplotlib.pyplot as plt
+    # scores = [x[1] for x in grid.grid_scores_]
+    # scores = np.multiply(scores, (-1))
+    # plt.plot(alphas, scores)
+    # plt.show()
+    #
+    # # Plotten von Koeffizienten vs. Strafterm
+    # for alpha in alphas:
+    #     if (alpha == 0):
+    #         coefficients = np.array([]).reshape(0, len(dataForRegression_X.columns))
+    #     ridge = linear_model.Ridge(alpha=alpha)
+    #     ridge.fit(dataForRegression_X, dataForRegression_y)
+    #     coefficients = np.append(coefficients,ridge.coef_, axis=0)
+    #
+    # import matplotlib.pyplot as plt
+    # plt.plot(alphas, coefficients[:, 0])
+    # plt.plot(alphas, coefficients[:, 1])
+    # plt.plot(alphas, coefficients[:, 2])
+    # plt.show()
 
     #Aufteilen von trainingData in Subsets von Trainings- und "Test"-Trainingsdaten mit Parametern seed & test_size
     seed = 1
