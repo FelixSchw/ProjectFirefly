@@ -14,8 +14,8 @@ import os
 ###Change working directory###
 from sklearn.preprocessing import StandardScaler
 
+##### Import files from correct directory
 felixOrLeo = "l"
-
 if (felixOrLeo == "f"):
     pathData = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Datensätze"
     pathInterface = "C:\\Users\\Felix Schweikardt\\Dropbox\\Seminararbeit FZI - Softsensor\\Interface"
@@ -23,14 +23,16 @@ else:
     pathData = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Datensätze"
     pathInterface = "/Users/leopoldspenner/Dropbox/Seminararbeit FZI - Softsensor/Interface"
 
-### extract y values
+
+##### Extract y values
 os.chdir(pathData)
 cwd = os.getcwd()
 dateparse = lambda x: pd.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
 trainingDataTargets = pd.read_csv('Targets.txt', parse_dates=['Time'], date_parser=dateparse)
 trainingDataTargets = trainingDataTargets.set_index('Time')
 
-### extract 'TrainingDataAlloc' from previous module 'Preprocessing'
+
+##### Extract 'TrainingDataAlloc' from previous module 'Preprocessing'
 os.chdir(pathInterface)
 cwd = os.getcwd()
 trainingDataPredictors = pd.read_csv('PreprocessedPredictors.csv', header=[0, 1], skipinitialspace=True, tupleize_cols=True)
@@ -39,20 +41,25 @@ trainingDataPredictors.columns = pd.MultiIndex.from_tuples(trainingDataPredictor
 trainingDataPredictors.columns = trainingDataPredictors.columns.set_levels(trainingDataPredictors.columns.levels[1].astype(int), level=1)
 ArrayAttributes = trainingDataPredictors.columns.levels[0]
 
-### create u
+
+##### Create u, the matrix with lagged explanatory variables
 temp_list_with_columns = []
 for i in range(0, len(ArrayAttributes)):
     for j in range(115, 120):
         temp_list_with_columns.append(trainingDataPredictors[ArrayAttributes[i]][j].values)
 u = np.vstack(temp_list_with_columns).T
 
-### create y
+
+##### Create Y
 y = trainingDataTargets.values
 
-### compile ARMAX model
+
+##### Compile ARMAX model
 armax = sm.tsa.ARMA(y, order=(1, 1), exog=u).fit()
 
-### im array u sind noch nuller und ausreißer - um diese zu finden
+
+##### Im array u sind noch nuller und ausreißer - um diese zu finden
 np.savetxt("NullerAusreisserfuerARMAX.csv", u, delimiter=",")
 
-### prediction noch zu machen
+
+##### Prediction noch zu machen
