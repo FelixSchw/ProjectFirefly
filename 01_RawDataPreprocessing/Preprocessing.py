@@ -114,7 +114,7 @@ for i in range(0, len(trainingDataTargets)):
     for j in range(0, len(trainingData.columns)):
         for k in range(0, 120):
             temp = TrainingDataAlloc.ix[i, (trainingData.columns[j], k)]
-            if (temp > lowerTolerances[ArrayAttributes[j]] & temp < upperTolerances[ArrayAttributes[j]]):
+            if ((temp > lowerTolerances[ArrayAttributes[j]]) & (temp < upperTolerances[ArrayAttributes[j]])):
                 counterGood = counterGood + 1
             else:
                 TrainingDataAlloc.ix[i, (trainingData.columns[j], k)] = VariablesDataframe.median()[ArrayAttributes[j]]
@@ -129,4 +129,4 @@ print("Data Preprocessing and Outlier Detection finished. In total, " + str(coun
 ##### Write TrainingDataAlloc to csv into interface directory
 os.chdir(pathInterface)
 cwd = os.getcwd()
-TrainingDataAlloc.to_csv("PreprocessedPredictorsNew.csv")
+TrainingDataAlloc.to_csv("PreprocessedPredictors.csv")
