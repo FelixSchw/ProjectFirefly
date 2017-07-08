@@ -37,8 +37,8 @@ filenames.append("SVRSnapZeroResults.csv")
 filenames.append("SVRSnapLagResults.csv")
 filenames.append("SVRTimeSeriesCharacResults.csv")
 filenames.append("SVRARXResults.csv")
-#filenames.append("ANNSnapZeroResults.csv")
-#filenames.append("ANNSnapLagResults.csv")
+filenames.append("ANNSnapZeroResults.csv")
+filenames.append("ANNSnapLagResults.csv")
 #filenames.append("ANNTimeSeriesCharacResults.csv")
 #filenames.append("ANNSnapZeroResults.csv")
 
@@ -64,6 +64,8 @@ for file in filenames:
 
     ###Berechnung des Prediktion-Errors
     error = hlpr.errorFunction(dataForEvaluation['Predictions'], dataForEvaluation['Feinheit'])
+    ###Dynamische Toleranzintervalle
+    toleranceIntervalDynamic = error
 
     ###Berechnung der Prozentzahl in Toleranz-Bereich
     dataForEvaluation['inTolerance'] = np.where(abs(dataForEvaluation['Predictions']-dataForEvaluation['Feinheit']) <= toleranceInterval, 'Good', 'Bad')
@@ -87,16 +89,15 @@ for file in filenames:
 
     RMSEString = "%1.3f" %evaluationResults.iloc[evaluationResults['Method'][evaluationResults['Method']==file].index,1]
     PercentageString = "%1.3f" % evaluationResults.iloc[evaluationResults['Method'][evaluationResults['Method'] == file].index, 2]
-    axarr[plotCounter].set_title(file + "(" + RMSEString + " RMSE/ " + PercentageString + " InClass)")
+    axarr[plotCounter].set_title(file + "(" + RMSEString + " RMSE/ " + PercentageString + " InAcceptedRange)")
     axarr[plotCounter].scatter(dataForPlot['Index'], dataForPlot['Feinheit'], color='#1f77b4')
     axarr[plotCounter].scatter(dataForPlot['Index'], dataForPlot['Predictions'], color='#d62728')
-    axarr[plotCounter].errorbar(dataForPlot['Index'], dataForPlot['Predictions'], yerr=toleranceInterval, color='#d62728',
+    axarr[plotCounter].errorbar(dataForPlot['Index'], dataForPlot['Predictions'], yerr=toleranceIntervalDynamic, color='#d62728',
                                 ecolor='r', fmt='o', capsize=5)
 
     #plt.savefig('testEvaluation.png', bbox_inches='tight')
     figManager = plt.get_current_fig_manager()
     figManager.window.showMaximized()
-
 
 ##Ausgabe der Ergebnisse
 print(evaluationResults)
