@@ -87,15 +87,15 @@ for i in filenames:
     ##### Grid search http://machinelearningmastery.com/grid-search-hyperparameters-deep-learning-models-python-keras/
     print("Grid_Search starts now at " + pd.datetime.now().ctime())
     grid_epochs = [50, 100, 200, 300, 400, 600]
-    grid_batch = [2, 4, 6, 10, 15]
-    grid_neurons = [3,6,8,10,12,15,20]
+    grid_batch = [2, 4, 6, 10, 15, 20]
+    grid_neurons = [3,6, 8, 10, 15, 20]
     grid_activation = ['softmax', 'relu', 'tanh', 'sigmoid', 'linear']
     grid_results = []
     grid_results.append("Epochs,Batch,Neurons,Activation,RMSE")
     for i in range(0, len(grid_epochs)):
         for j in range(0, len(grid_batch)):
             ##### Zwischenspeichern
-            np.savetxt("Grid_Search_Results.txt", grid_results, delimiter=" ", fmt="%s")
+            np.savetxt("Grid_Search_Results_New_Data.txt", grid_results, delimiter=" ", fmt="%s")
             for k in range(0, len(grid_neurons)):
                 for l in range(0, len(grid_activation)):
                     ##### Derive name
@@ -118,7 +118,7 @@ for i in filenames:
                     grid_current_name = grid_current_name + str(errorFunction(predictions_standardizedinversed, Y_test))
                     print(grid_current_name)
                     grid_results.append(grid_current_name)
-    np.savetxt("Grid_Search_Results.txt", grid_results, delimiter=" ", fmt="%s")
+    np.savetxt("Grid_Search_Results_New_Data.txt", grid_results, delimiter=" ", fmt="%s")
     print(str(grid_results))
     print("Grid_Search finished now at " + pd.datetime.now().ctime())
 

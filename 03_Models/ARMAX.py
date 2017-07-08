@@ -59,7 +59,7 @@ armax = sm.tsa.ARMA(y, order=(1, 1), exog=u).fit()
 
 
 ##### Im array u sind noch nuller und ausreißer - um diese zu finden
-np.savetxt("NullerAusreisserfuerARMAX.csv", u, delimiter=",")
+#np.savetxt("NullerAusreisserfuerARMAX.csv", u, delimiter=",")
 
 
 ##### Prediction noch zu machen

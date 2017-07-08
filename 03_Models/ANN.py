@@ -28,7 +28,7 @@ def errorFunction(y, y_pred):
 
 
 ##### Set seed
-np.random.seed(1)
+np.random.seed(133)
 
 
 ##### Fetching training data set
@@ -77,11 +77,11 @@ for i in filenames:
 
 
     ##### Rescale data (often referred to as normalization) http://machinelearningmastery.com/prepare-data-machine-learning-python-scikit-learn/
-    #minmaxscaler = MinMaxScaler(feature_range=(0, 1))
-    #rescaledDataForRegression = minmaxscaler.fit_transform(dataForRegression)
-    #dataForRegression_X_minmaxscaled = rescaledDataForRegression[:,0:numberOfPredictors]
-    #dataForRegression_Y_minmaxscaled = rescaledDataForRegression[:,numberOfPredictors]
-    #X_train_minmaxscaled, X_test_minmaxscaled, Y_train_minmaxscaled, Y_test_minmaxscaled = cross_validation.train_test_split(dataForRegression_X_minmaxscaled, dataForRegression_Y_minmaxscaled, test_size=test_size, random_state=seed)
+    minmaxscaler = MinMaxScaler(feature_range=(0, 1))
+    rescaledDataForRegression = minmaxscaler.fit_transform(dataForRegression)
+    dataForRegression_X_minmaxscaled = rescaledDataForRegression[:,0:numberOfPredictors]
+    dataForRegression_Y_minmaxscaled = rescaledDataForRegression[:,numberOfPredictors]
+    X_train_minmaxscaled, X_test_minmaxscaled, Y_train_minmaxscaled, Y_test_minmaxscaled = cross_validation.train_test_split(dataForRegression_X_minmaxscaled, dataForRegression_Y_minmaxscaled, test_size=test_size, random_state=seed)
 
 
     ##### Standardize data (http://machinelearningmastery.com/prepare-data-machine-learning-python-scikit-learn/)
@@ -93,31 +93,31 @@ for i in filenames:
 
 
     ##### Define base model
-    #def baseline_model():
-    #    model = Sequential()
-    #    model.add(Dense(numberOfPredictors, input_dim=numberOfPredictors, kernel_initializer='normal', activation='relu'))
-    #    model.add(Dense(1, kernel_initializer='normal'))
-    #    model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mean_squared_error'])
-    #    return model
+    def baseline_model():
+        model = Sequential()
+        model.add(Dense(3, input_dim=numberOfPredictors, kernel_initializer='normal', activation='tanh'))
+        model.add(Dense(1, kernel_initializer='normal'))
+        model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mean_squared_error'])
+        return model
 
 
     ##### Define deeper model
-    #def deeper_model():
-    #    modelD = Sequential()
-    #    modelD.add(Dense(numberOfPredictors, input_dim=numberOfPredictors, kernel_initializer='normal', activation='relu'))
-    #    modelD.add(Dense(3, kernel_initializer='normal', activation='relu'))
-    #    modelD.add(Dense(1, kernel_initializer='normal'))
-    #    modelD.compile(loss='mean_squared_error', optimizer='adam', metrics=['mean_squared_error'])
-    #    return modelD
+    def deeper_model():
+        modelD = Sequential()
+        modelD.add(Dense(numberOfPredictors, input_dim=numberOfPredictors, kernel_initializer='normal', activation='relu'))
+        modelD.add(Dense(3, kernel_initializer='normal', activation='relu'))
+        modelD.add(Dense(1, kernel_initializer='normal'))
+        modelD.compile(loss='mean_squared_error', optimizer='adam', metrics=['mean_squared_error'])
+        return modelD
 
 
     ##### Define wider model
-    #def wider_model():
-    #    modelW = Sequential()
-    #    modelW.add(Dense(20, input_dim=numberOfPredictors, kernel_initializer='normal', activation='relu'))
-    #    modelW.add(Dense(1, kernel_initializer='normal'))
-    #    modelW.compile(loss='mean_squared_error', optimizer='adam', metrics=['mean_squared_error'])
-    #    return modelW
+    def wider_model():
+        modelW = Sequential()
+        modelW.add(Dense(20, input_dim=numberOfPredictors, kernel_initializer='normal', activation='relu'))
+        modelW.add(Dense(1, kernel_initializer='normal'))
+        modelW.compile(loss='mean_squared_error', optimizer='adam', metrics=['mean_squared_error'])
+        return modelW
 
 
     ##### Fit baseline model on training data and make predictions using test data --> yields RMSE = 0.5
@@ -139,22 +139,22 @@ for i in filenames:
 
 
     ##### Fit baseline model on standardized training data, make prediction on test data and inverse transform it --> yields 0.39
-    #np.random.seed(59)
-    #estimator_standardized = KerasRegressor(build_fn=baseline_model)
-    #estimator_standardized.fit(X_train_standardized, Y_train_standardized, batch_size=3, epochs=200, verbose=2)
-    #predictions_standardized = estimator_standardized.predict(X_test_standardized)[:, None]
-    #predictions_standardized_matrix = np.hstack((np.ones((len(X_test), numberOfPredictors)), predictions_standardized))
-    #predictions_standardizedinversed = standardscaler.inverse_transform(predictions_standardized_matrix)[:,numberOfPredictors]
-    #print(current_model + " (standardized) has RMSE of: " + str(errorFunction(predictions_standardizedinversed, Y_test)))
+    np.random.seed(133)
+    estimator_standardized = KerasRegressor(build_fn=baseline_model)
+    estimator_standardized.fit(X_train_standardized, Y_train_standardized, batch_size=1, epochs=310, verbose=2)
+    predictions_standardized = estimator_standardized.predict(X_test_standardized)[:, None]
+    predictions_standardized_matrix = np.hstack((np.ones((len(X_test), numberOfPredictors)), predictions_standardized))
+    predictions_standardizedinversed = standardscaler.inverse_transform(predictions_standardized_matrix)[:,numberOfPredictors]
+    print(current_model + " (standardized) has RMSE of: " + str(errorFunction(predictions_standardizedinversed, Y_test)))
 
 
     ##### Save dataframe with results
-    #to_save = pd.DataFrame(
-    #    {'Time': dFR_X_test.index,
-    #     'Predictions': predictions_standardizedinversed,
-    #     'Feinheit': Y_test})
-    #to_save = to_save.set_index('Time')
-    #to_save.to_csv(current_model)
+    to_save = pd.DataFrame(
+        {'Time': dFR_X_test.index,
+         'Predictions': predictions_standardizedinversed,
+         'Feinheit': Y_test})
+    to_save = to_save.set_index('Time')
+    to_save.to_csv(current_model)
 
 
     ##### Just for fun: using all X data and 10fold cross validation, calculate RMSE
@@ -162,43 +162,5 @@ for i in filenames:
     #kfold = KFold(n_splits=10, random_state=seed) #Nacho --> kein k-Fold
     #results = cross_val_score(estimator,X ,Y , cv=kfold)
     #print(filename_to_save + " with entire X/Y dataset and 10fold cross validation has RMSE of: " + str(math.sqrt(results.mean())))
-
-    ##### Grid search http://machinelearningmastery.com/grid-search-hyperparameters-deep-learning-models-python-keras/
-    print("Grid_Search starts now at " + pd.datetime.now().ctime())
-    grid_epochs = [50, 100, 200, 300, 400, 600]
-    grid_batch = [2, 4, 6, 10, 15]
-    grid_neurons = [3,6,8,10,12,15,20]
-    grid_activation = ['softmax', 'relu', 'tanh', 'sigmoid', 'linear']
-    grid_results = []
-    grid_results.append("Epochs,Batch,Neurons,Activation,RMSE")
-    for i in range(0, len(grid_epochs)):
-        for j in range(0, len(grid_batch)):
-            ##### Zwischenspeichern
-            np.savetxt("Grid_Search_Results.txt", grid_results, delimiter=" ", fmt="%s")
-            for k in range(0, len(grid_neurons)):
-                for l in range(0, len(grid_activation)):
-                    ##### Derive name
-                    grid_current_name = str(grid_epochs[i]) + "," + str(grid_batch[j]) + "," + str(grid_neurons[k]) + "," + grid_activation[l] + ","
-                    ##### Define base model
-                    def baseline_model():
-                        model = Sequential()
-                        model.add(Dense(grid_neurons[k], input_dim=numberOfPredictors, kernel_initializer='normal',activation=grid_activation[l]))
-                        model.add(Dense(1, kernel_initializer='normal'))
-                        model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mean_squared_error'])
-                        return model
-                    ##### Fit baseline model on standardized training data, make prediction on test data and inverse transform it --> yields 0.39
-                    np.random.seed(1)
-                    estimator_standardized = KerasRegressor(build_fn=baseline_model)
-                    estimator_standardized.fit(X_train_standardized, Y_train_standardized, batch_size=grid_batch[j], epochs=grid_epochs[i], verbose=0)
-                    predictions_standardized = estimator_standardized.predict(X_test_standardized)[:, None]
-                    predictions_standardized_matrix = np.hstack((np.ones((len(X_test), numberOfPredictors)), predictions_standardized))
-                    predictions_standardizedinversed = standardscaler.inverse_transform(predictions_standardized_matrix)[:, numberOfPredictors]
-                    ##### Update grid_current_name, print it and append it to grid_results
-                    grid_current_name = grid_current_name + str(errorFunction(predictions_standardizedinversed, Y_test))
-                    print(grid_current_name)
-                    grid_results.append(grid_current_name)
-    np.savetxt("Grid_Search_Results.txt", grid_results, delimiter=" ", fmt="%s")
-    print(str(grid_results))
-    print("Grid_Search finished now at " + pd.datetime.now().ctime())
 
 
