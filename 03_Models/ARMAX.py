@@ -12,6 +12,7 @@ import os
 ###Only apply if default directories are not working###
 
 ###Change working directory###
+from sklearn import cross_validation
 from sklearn.preprocessing import StandardScaler
 
 ##### Import files from correct directory
@@ -43,19 +44,26 @@ ArrayAttributes = trainingDataPredictors.columns.levels[0]
 
 
 ##### Create u, the matrix with lagged explanatory variables
+steps = [40, 60, 80, 100, 119]
 temp_list_with_columns = []
 for i in range(0, len(ArrayAttributes)):
-    for j in range(115, 120):
-        temp_list_with_columns.append(trainingDataPredictors[ArrayAttributes[i]][j].values)
-u = np.vstack(temp_list_with_columns).T
+    for j in range(0, len(steps)):
+        temp_list_with_columns.append(trainingDataPredictors[ArrayAttributes[i]][steps[j]].values)
+x = np.vstack(temp_list_with_columns).T
 
 
 ##### Create Y
 y = trainingDataTargets.values
 
 
+##### Standardize data und split into test and train
+test_size = 0.2
+seed = 1
+X_train, X_test, Y_train, Y_test = cross_validation.train_test_split(x, y, test_size=test_size, random_state=seed)
+
+
 ##### Compile ARMAX model
-armax = sm.tsa.ARMA(y, order=(1, 1), exog=u).fit()
+armax = sm.tsa.ARMA(Y_train, order=(1, 1), exog=X_train).fit()
 
 
 ##### Im array u sind noch nuller und ausreißer - um diese zu finden
@@ -63,3 +71,4 @@ armax = sm.tsa.ARMA(y, order=(1, 1), exog=u).fit()
 
 
 ##### Prediction noch zu machen
+armax

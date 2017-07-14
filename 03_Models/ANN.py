@@ -47,7 +47,7 @@ dateparse = lambda x: pd.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
 ##### train the models for all files generated in 02_TrainingSetGeneration
 filenames = []
 filenames.append("SnapZero.csv")
-#filenames.append("SnapLag.csv")
+filenames.append("SnapLag.csv")
 #filenames.append("TimeSeriesCharac.csv")
 #filenames.append("ARX.csv")
 
@@ -58,7 +58,7 @@ for i in filenames:
     ##### Set seed, test_size & current model name
     current_model = "ANN" + i[:-4] + "Results.csv"
     test_size = 0.2
-    seed = 1
+    seed = 44
 
 
     ##### Read file with NN data, set index, and calculate # of predictors

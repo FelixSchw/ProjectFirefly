@@ -18,17 +18,17 @@ from sklearn import preprocessing
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense
-from keras.wrappers.scikit_learn import KerasRegressor
+from keras.wrappers.scikit_learn import KerasRegressor, KerasClassifier
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import GridSearchCV
+from keras.layers import Dropout
+from keras.constraints import maxnorm
 
 ##### Defition einer Error-Funktion (RMSE)
 def errorFunction(y, y_pred):
     accuracy = math.sqrt(mean_squared_error(y, y_pred))
     return accuracy
 
-
-##### Set seed
-np.random.seed(1)
 
 
 ##### Fetching training data set
@@ -84,42 +84,43 @@ for i in filenames:
     X_train_standardized, X_test_standardized, Y_train_standardized, Y_test_standardized = cross_validation.train_test_split(dataForRegression_X_standardized, dataForRegression_Y_standardized, test_size=test_size, random_state=seed)
 
 
+    ##### Define base model
+    def baseline_model(neurons=1, dropout_rate=0.0, weight_constraint=0, activation='relu'):
+        model = Sequential()
+        model.add(Dense(neurons, input_dim=numberOfPredictors, kernel_initializer='normal', activation=activation, kernel_constraint=maxnorm(weight_constraint)))
+        model.add(Dropout(dropout_rate))
+        model.add(Dense(1, kernel_initializer='normal'))
+        model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
+        return model
+
+
+    ##### Set seed for reproducability
+    np.random.seed(1)
+
+
     ##### Grid search http://machinelearningmastery.com/grid-search-hyperparameters-deep-learning-models-python-keras/
-    print("Grid_Search starts now at " + pd.datetime.now().ctime())
-    grid_epochs = [100, 200, 300, 400, 500]
-    grid_batch = [2, 4, 6, 10, 15, 20]
-    grid_neurons = [3,6, 8, 10, 15]
-    grid_activation = ['softmax', 'relu', 'tanh', 'sigmoid', 'linear']
-    grid_results = []
-    grid_results.append("Epochs,Batch,Neurons,Activation,RMSE")
-    for i in range(0, len(grid_epochs)):
-        for j in range(0, len(grid_batch)):
-            ##### Zwischenspeichern
-            np.savetxt("Grid_Search_Results_New_Data.txt", grid_results, delimiter=" ", fmt="%s")
-            for k in range(0, len(grid_neurons)):
-                for l in range(0, len(grid_activation)):
-                    ##### Derive name
-                    grid_current_name = str(grid_epochs[i]) + "," + str(grid_batch[j]) + "," + str(grid_neurons[k]) + "," + grid_activation[l] + ","
-                    ##### Define base model
-                    def baseline_model():
-                        model = Sequential()
-                        model.add(Dense(grid_neurons[k], input_dim=numberOfPredictors, kernel_initializer='normal',activation=grid_activation[l]))
-                        model.add(Dense(1, kernel_initializer='normal'))
-                        model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mean_squared_error'])
-                        return model
-                    ##### Fit baseline model on standardized training data, make prediction on test data and inverse transform it --> yields 0.39
-                    np.random.seed(1)
-                    estimator_standardized = KerasRegressor(build_fn=baseline_model)
-                    estimator_standardized.fit(X_train_standardized, Y_train_standardized, batch_size=grid_batch[j], epochs=grid_epochs[i], verbose=0)
-                    predictions_standardized = estimator_standardized.predict(X_train_standardized)[:, None]
-                    predictions_standardized_matrix = np.hstack((np.ones((len(X_train), numberOfPredictors)), predictions_standardized))
-                    predictions_standardizedinversed = standardscaler.inverse_transform(predictions_standardized_matrix)[:, numberOfPredictors]
-                    ##### Update grid_current_name, print it and append it to grid_results
-                    grid_current_name = grid_current_name + str(errorFunction(predictions_standardizedinversed, Y_train))
-                    print(grid_current_name)
-                    grid_results.append(grid_current_name)
-    np.savetxt("Grid_Search_Results_New_Data.txt", grid_results, delimiter=" ", fmt="%s")
-    print(str(grid_results))
-    print("Grid_Search finished now at " + pd.datetime.now().ctime())
+    model = KerasClassifier(build_fn=baseline_model, verbose=0)
 
 
+    ##### Define the grid search parameters
+    batch_size = [5, 10, 50, 100]
+    epochs = [10, 50, 100, 400]
+    neurons = [1, 3, 5, 10, 20]
+    activation = ['relu', 'tanh', 'softmax']
+    weight_constraint = [1, 3, 5]
+    dropout_rate = [0.0, 0.3, 0.6, 0.9]
+
+
+    ##### Fit with parameters
+    param_grid = dict(batch_size=batch_size, epochs=epochs, neurons=neurons, activation=activation, weight_constraint=weight_constraint, dropout_rate=dropout_rate)
+    grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1)
+    grid_result = grid.fit(X_train, Y_train)
+
+
+    ##### Summarize results
+    print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+    means = grid_result.cv_results_['mean_test_score']
+    stds = grid_result.cv_results_['std_test_score']
+    params = grid_result.cv_results_['params']
+    for mean, stdev, param in zip(means, stds, params):
+        print("%f (%f) with: %r" % (mean, stdev, param))
