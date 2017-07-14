@@ -57,42 +57,41 @@ for file in filenames:
     #Initialisierung der Error-Funktion
     scorer = make_scorer(score_func=hlpr.errorFunction, greater_is_better=False)
 
-    #Cross Validation von Ridge Parameters
-    #alphas = np.array([0, 1e-20, 1e-10, 1e-5, 0.0001, 0.001, 0.01, 0.1, 1, 5, 10, 50, 100, 500, 1000, 2000, 3000,5000,7000, 9000, 10000])
-    alphas = np.array([i for i in range(0,2000,100)])
-    alphas_grid = dict(alpha=alphas)
-    clf_ridge = linear_model.Ridge()
-    grid = GridSearchCV(estimator=clf_ridge, param_grid=alphas_grid, cv=5, scoring=scorer)
-    grid.fit(dataForRegression_X, dataForRegression_y)
-    print("\nRSME k-folded (k=5) Ridge-Regressions with different alpha:")
-    print(*grid.grid_scores_, sep="\n")
-    print("\nThe best alpha for Regression is:", grid.best_estimator_.alpha)
-
-    # #Plotten von Error-Function vs. Parameter
-    # import matplotlib.pyplot as plt
-    # scores = [x[1] for x in grid.grid_scores_]
-    # scores = np.multiply(scores, (-1))
-    # plt.plot(alphas, scores)
-    # plt.show()
-    #
-    # # Plotten von Koeffizienten vs. Strafterm
-    # for alpha in alphas:
-    #     if (alpha == 0):
-    #         coefficients = np.array([]).reshape(0, len(dataForRegression_X.columns))
-    #     ridge = linear_model.Ridge(alpha=alpha)
-    #     ridge.fit(dataForRegression_X, dataForRegression_y)
-    #     coefficients = np.append(coefficients,ridge.coef_, axis=0)
-    #
-    # import matplotlib.pyplot as plt
-    # plt.plot(alphas, coefficients[:, 0])
-    # plt.plot(alphas, coefficients[:, 1])
-    # plt.plot(alphas, coefficients[:, 2])
-    # plt.show()
-
     #Aufteilen von trainingData in Subsets von Trainings- und "Test"-Trainingsdaten mit Parametern seed & test_size
     seed = 1
     test_size = 0.2
     X_train, X_test, y_train, y_test = cross_validation.train_test_split(dataForRegression_X, dataForRegression_y, test_size=test_size, random_state=seed)
+
+    #Cross Validation von Ridge Parameters
+    alphas = np.array([i*0.5 for i in range(0,3000,1)])
+    alphas_grid = dict(alpha=alphas)
+    clf_ridge = linear_model.Ridge()
+    grid = GridSearchCV(estimator=clf_ridge, param_grid=alphas_grid, cv=5, scoring=scorer)
+    grid.fit(X_train, y_train)
+    print("\nRSME k-folded (k=5) Ridge-Regressions with different alpha:")
+    print(*grid.grid_scores_, sep="\n")
+    print("\nThe best alpha for Regression is:", grid.best_estimator_.alpha)
+
+    #Plotten von Error-Function vs. Parameter
+    import matplotlib.pyplot as plt
+    scores = [x[1] for x in grid.grid_scores_]
+    scores = np.multiply(scores, (-1))
+    plt.plot(alphas, scores)
+    plt.show()
+
+    # Plotten von Koeffizienten vs. Strafterm
+    for alpha in alphas:
+        if (alpha == 0):
+            coefficients = np.array([]).reshape(0, len(dataForRegression_X.columns))
+        ridge = linear_model.Ridge(alpha=alpha)
+        ridge.fit(dataForRegression_X, dataForRegression_y)
+        coefficients = np.append(coefficients,ridge.coef_, axis=0)
+
+    import matplotlib.pyplot as plt
+    plt.plot(alphas, coefficients[:, 0])
+    plt.plot(alphas, coefficients[:, 1])
+    plt.plot(alphas, coefficients[:, 2])
+    plt.show()
 
     #Defintion verschiedener Modelle
     ridge = linear_model.Ridge(alpha=grid.best_estimator_.alpha)

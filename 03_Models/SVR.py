@@ -29,9 +29,9 @@ dateparse = lambda x: pd.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
 
 ## train the models for all files generated in 02_TrainingSetGeneration
 filenames = []
-filenames.append("SnapZero.csv")
-filenames.append("SnapLag.csv")
-filenames.append("TimeSeriesCharac.csv")
+#filenames.append("SnapZero.csv")
+#filenames.append("SnapLag.csv")
+#filenames.append("TimeSeriesCharac.csv")
 filenames.append("ARX.csv")
 
 ## loop through all files
@@ -59,24 +59,25 @@ for file in filenames:
     #Initialisierung der Error-Funktion
     scorer = make_scorer(score_func=hlpr.errorFunction, greater_is_better=False)
 
+    #Aufteilen von trainingData in Subsets von Trainings- und "Test"-Trainingsdaten mit Parametern seed & test_size
+    seed = 1
+    test_size = 0.2
+    X_train, X_test, y_train, y_test = cross_validation.train_test_split(dataForRegression_X, dataForRegression_y, test_size=test_size, random_state=seed)
+
     # cross validation of SVR parameters
-    Cs = np.array([0.01, 0.1, 1, 10, 100])
-    Epsilons = np.array([0.001, 0.01, 0.1, 1, 10, 100])
-    Gammas = np.array([1e-20, 1e-10, 1e-5, 0.0001, 0.001, 0.01, 0.1, 1, 5, 10, 50, 100, 1000, 10000])
+    Cs = np.array([i for i in range(1, 100, 1)])
+    Epsilons = np.arange(0.00001, 0.01, 0.0001)
+    Gammas = np.arange(0.0, 0.001, 0.00001)
     Param_grid = dict(C=Cs, gamma=Gammas, epsilon=Epsilons)
     clf_svr = SVR(kernel='rbf')
     grid = GridSearchCV(estimator=clf_svr, param_grid=Param_grid, cv=5, scoring=scorer)
-    grid.fit(dataForRegression_X, np.ravel(dataForRegression_y))
+    grid.fit(X_train, np.ravel(y_train))
     print("\nRSME k-folded (k=5) SVR-Regressions with different alpha:")
     print(*grid.grid_scores_, sep="\n")
     print("\nThe best C for Regression is:", grid.best_estimator_.C)
     print("The best Epsilon for Regression is:", grid.best_estimator_.epsilon)
     print("The best Gamma for Regression is:", grid.best_estimator_.gamma)
 
-    #Aufteilen von trainingData in Subsets von Trainings- und "Test"-Trainingsdaten mit Parametern seed & test_size
-    seed = 1
-    test_size = 0.2
-    X_train, X_test, y_train, y_test = cross_validation.train_test_split(dataForRegression_X, dataForRegression_y, test_size=test_size, random_state=seed)
 
     #Defintion verschiedener Modelle
     svr = SVR(kernel='rbf', C=grid.best_estimator_.C, epsilon=grid.best_estimator_.epsilon, gamma=grid.best_estimator_.gamma)
