@@ -71,4 +71,3 @@ armax = sm.tsa.ARMA(Y_train, order=(1, 1), exog=X_train).fit()
 
 
 ##### Prediction noch zu machen
-armax
