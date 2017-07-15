@@ -111,6 +111,10 @@ for i in filenames:
     dropout_rate = [0.0, 0.3, 0.6, 0.9]
 
 
+    ##### Create file for output
+    grid_results = []
+
+
     ##### Fit with parameters
     param_grid = dict(batch_size=batch_size, epochs=epochs, neurons=neurons, activation=activation, weight_constraint=weight_constraint, dropout_rate=dropout_rate)
     grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1)
@@ -124,3 +128,8 @@ for i in filenames:
     params = grid_result.cv_results_['params']
     for mean, stdev, param in zip(means, stds, params):
         print("%f (%f) with: %r" % (mean, stdev, param))
+        grid_results.append("%f (%f) with: %r" % (mean, stdev, param))
+
+
+    ##### Save results in file
+    np.savetxt("Mystery_GridSearchResults.txt", grid_results, delimiter=" ", fmt="%s")
