@@ -20,6 +20,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.wrappers.scikit_learn import KerasRegressor
 from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
 
 ##### Defition einer Error-Funktion (RMSE)
 def errorFunction(y, y_pred):
@@ -28,7 +29,7 @@ def errorFunction(y, y_pred):
 
 
 ##### Set seed
-np.random.seed(133)
+np.random.seed(1)
 
 
 ##### Fetching training data set
@@ -58,7 +59,7 @@ for i in filenames:
     ##### Set seed, test_size & current model name
     current_model = "ANN" + i[:-4] + "Results.csv"
     test_size = 0.2
-    seed = 44
+    seed = 1
 
 
     ##### Read file with NN data, set index, and calculate # of predictors
@@ -95,9 +96,9 @@ for i in filenames:
     ##### Define base model
     def baseline_model():
         model = Sequential()
-        model.add(Dense(3, input_dim=numberOfPredictors, kernel_initializer='normal', activation='tanh'))
+        model.add(Dense(10, input_dim=numberOfPredictors, kernel_initializer='normal', activation='tanh'))
         model.add(Dense(1, kernel_initializer='normal'))
-        model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mean_squared_error'])
+        model.compile(loss='mean_squared_error', accuracy='', optimizer='adam', metrics=['mean_squared_error'])
         return model
 
 
@@ -139,9 +140,24 @@ for i in filenames:
 
 
     ##### Fit baseline model on standardized training data, make prediction on test data and inverse transform it --> yields 0.39
-    np.random.seed(133)
+    np.random.seed(1)
     estimator_standardized = KerasRegressor(build_fn=baseline_model)
-    estimator_standardized.fit(X_train_standardized, Y_train_standardized, batch_size=1, epochs=310, verbose=2)
+    estimator_standardized.fit(X_train_standardized, Y_train_standardized, batch_size=50, epochs=100, verbose=0)
+
+
+    ##### Training plots
+    #history = estimator_standardized.fit(X_train_standardized, Y_train_standardized, validation_split=0.33, batch_size=50, epochs=100, verbose=0)
+    #print(history.history.keys())
+    #plt.plot(history.history['loss'])
+    #plt.plot(history.history['val_loss'])
+    #plt.title('model loss')
+    #plt.ylabel('loss')
+    #plt.xlabel('epoch')
+    #plt.legend(['train', 'test'], loc='upper left')
+    #plt.show()
+
+
+    ##### Perform prediction
     predictions_standardized = estimator_standardized.predict(X_test_standardized)[:, None]
     predictions_standardized_matrix = np.hstack((np.ones((len(X_test), numberOfPredictors)), predictions_standardized))
     predictions_standardizedinversed = standardscaler.inverse_transform(predictions_standardized_matrix)[:,numberOfPredictors]
